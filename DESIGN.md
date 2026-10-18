@@ -30,6 +30,35 @@ colors:
   choice-selected: "#eff7f1"
   choice-selected-border: "#8bb89a"
   review-warning: "#894d16"
+  dark-primary: "#8bddb2"
+  dark-primary-hover: "#a5e7c4"
+  dark-ink: "#e4eee7"
+  dark-muted: "#a7baad"
+  dark-canvas: "#141c18"
+  dark-surface: "#1e2922"
+  dark-topbar: "#141c18"
+  dark-border: "#3b4d41"
+  dark-input-border: "#3b4d41"
+  dark-nav-hover: "#26342b"
+  dark-nav-selected: "#243c2e"
+  dark-icon-surface: "#243c2e"
+  dark-preview-stage: "#17211b"
+  dark-preview-footer: "#26342b"
+  dark-focus: "#8bddb2"
+  dark-selection: "#355f46"
+  dark-selection-ink: "#d5f4e3"
+  dark-notice-bg: "#243c2e"
+  dark-notice-border: "#466e54"
+  dark-notice-ink: "#c2e6ce"
+  dark-validation-bg: "#392a20"
+  dark-validation-ink: "#f6c195"
+  dark-dropzone-border: "#608a6d"
+  dark-dropzone-busy: "#243c2e"
+  dark-choice-selected: "#243c2e"
+  dark-choice-selected-border: "#669d7a"
+  dark-review-warning: "#f6c195"
+  dark-solid: "#25734f"
+  dark-solid-hover: "#2c8059"
 typography:
   headline:
     fontFamily: '"DM Sans Variable", "Segoe UI", sans-serif'
@@ -146,14 +175,14 @@ components:
 
 **Creative North Star: "Operate — mesa de edição documental"**
 
-Um espaço de trabalho claro, com verde profundo e papel branco. A hierarquia acompanha a tarefa: preencher, conferir o documento e salvar. Formulário e PDF dividem o espaço disponível; scanner e histórico usam vistas próprias.
+Um espaço de trabalho com verde documental, superfícies claras ou escuras e papel branco. A hierarquia acompanha a tarefa: preencher, conferir o documento e salvar. Formulário e PDF dividem o espaço disponível; scanner e histórico usam vistas próprias.
 
-Este documento atualiza a direção provisória com os valores implementados em `src/styles.css`, `src/form-v2.css`, `src/App.tsx`, `src/ContractForm.tsx`, `src/ScannerView.tsx` e no tema Radix de `src/main.tsx`. A interface foi desenvolvida em código para teste local; não representa aprovação de uma composição visual pelo usuário. Direção inicial: variância 3/10, movimento 2/10 e densidade 5/10.
+Este documento atualiza a direção provisória com os valores implementados em `src/styles.css`, `src/form-v2.css`, `src/App.tsx`, `src/ContractForm.tsx`, `src/ScannerView.tsx`, `src/theme.css`, `src/Appearance.tsx`, `src/LocationFields.tsx` e no tema Radix compartilhado. A interface foi desenvolvida em código para teste local; não representa aprovação de uma composição visual pelo usuário. O modo escuro e a preferência persistente foram solicitados pelo usuário como extensão da identidade existente. Direção inicial: variância 3/10, movimento 2/10 e densidade 5/10.
 
 **Key Characteristics:**
 
 - Verde concentrado nas ações, seleção e sinais de documento.
-- Painéis brancos com bordas finas sobre fundo cinza esverdeado.
+- Painéis tonais com bordas finas sobre fundo esverdeado, acompanhando a aparência escolhida.
 - Tipografia compacta e hierarquia orientada à edição.
 - Prévia do PDF como parte funcional do espaço de trabalho.
 
@@ -168,7 +197,15 @@ O verde profundo é o único acento de identidade; tons quentes aparecem na vali
 - `notice-*` identifica mensagens de estado. `validation-*` identifica campos que precisam de revisão.
 - `focus` é o contorno global de teclado; `selection` e `selection-ink` definem a seleção de texto.
 
-Os tokens acima registram os papéis reutilizáveis da aplicação. Variações pontuais de divisores e metadados continuam no CSS. Os controles mantêm a escala green/sage do Radix no tema claro, com substituição explícita de green-9 e green-10.
+Os tokens acima registram os papéis reutilizáveis da aplicação. Variações pontuais de divisores e metadados continuam no CSS. Os controles mantêm a escala green/sage do Radix nos dois modos, com substituição explícita de green-9 e green-10.
+
+### Aparência clara, escura e do dispositivo
+
+Os tokens sem prefixo preservam a aparência clara; os equivalentes `dark-*` registram a aparência escura. A implementação resolve os mesmos papéis por variáveis CSS sob `data-theme`. Fundo, painéis e bordas continuam distintos por tom, sem novas sombras. Texto principal, apoio, seleção, avisos e validação recebem pares próprios.
+
+No escuro, `dark-primary` serve a texto e ícones; os botões sólidos usam `dark-solid` e `dark-solid-hover` com texto branco. Ações suaves usam texto opaco em `primary` ou `dark-primary`, preservando contraste nos dois modos. `color-scheme` e o tema Radix acompanham o modo resolvido, incluindo campos nativos e datas.
+
+**The White Paper Rule.** A aparência muda o espaço de edição; o papel de exemplo e o PDF permanecem brancos, preservando a leitura do documento que será salvo.
 
 ## Typography
 
@@ -215,6 +252,14 @@ A escolha de um ou dois doadores usa um select nativo junto de título e instru�
 
 Qualificação e filiação, endereço e registros adicionais usam grupos nativos `details/summary`, fechados inicialmente, com divisor superior e indicação discreta de “opcional”. O resumo aberto se afasta 20px dos campos. Endereços permanecem separados por pessoa; copiar o endereço do doador 1 é uma ação explícita.
 
+### Aparência e preenchimento assistido
+
+O alternador usa borda de campo, superfície, texto principal, raio de navegação, padding de 9px por 12px e altura mínima de 38px. Fica no cabeçalho no desktop e junto da marca no celular; até 640px mostra apenas o ícone, mantendo nome acessível. Nas configurações, o select rotulado oferece claro, escuro ou acompanhar o dispositivo. A preferência persiste em `localStorage`; o modo do dispositivo reage às mudanças do sistema.
+
+Seletores de reaproveitamento ficam junto dos campos que alteram, com rótulo persistente e largura disponível. Recuperar uma pessoa do histórico local é uma escolha explícita e preserva a forma de assinatura atual. Copiar endereço mostra a origem; cada endereço continua independente depois da cópia. Município e UF formam um par: município fica desabilitado até escolher a UF, oferece sugestões da lista correspondente e apresenta aviso textual se o valor não corresponde à lista.
+
+Atalhos de município e data usam botões suaves compactos, em linha com quebra e intervalo de 8px. O texto descreve a origem ou o valor, como “Usar município do donatário” e “Data de hoje”. A revisão de preenchimento usa `details/summary`, fundo de ícone, texto de aviso positivo, raio de ícone e padding de 12px. Pendências são botões de largura inteira separados por bordas que levam à seção correspondente; o estado completo orienta gerar a prévia. Margens laterais de 23px passam a 17px no celular.
+
 ### Forma de assinatura
 
 Cada pessoa tem duas linhas de rádio em um `fieldset` com legenda acessível. A linha inteira é clicável, tem raio de navegação, contorno de campo e intervalo de 10px. A escolha usa `choice-selected` e `choice-selected-border`, mantendo o rádio visível. A amostra de assinatura é uma linha de 37px; a de impressão digital é um quadrado de 30px. Essas amostras são decorativas e acompanham títulos e explicações escritos.
@@ -233,10 +278,11 @@ A prévia é gerada por uma ação explícita. O rascunho dos campos é salvo ap
 
 ### Do
 
-- Reutilizar verde, superfícies claras, bordas e hierarquia compacta.
+- Reutilizar verde, superfícies do modo escolhido, bordas e hierarquia compacta.
 - Preservar rótulos, foco visível e mensagens de progresso.
 - Adaptar painéis e ações nos pontos de quebra documentados.
 - Manter a aparência do documento no modelo Word e no PDF convertido.
+- Usar texto opaco no acento do modo para ações suaves e rótulos persistentes no preenchimento assistido.
 
 ### Don't
 
