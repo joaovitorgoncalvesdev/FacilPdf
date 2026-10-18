@@ -1,0 +1,11 @@
+node_modules/
+dist/
+.env*
+.vercel/
+.impeccable/review/
+test-results/
+*.tsbuildinfo
+.local/
+server/fonts/*
+!server/fonts/.gitkeep
+public/ocr/

@@ -1,0 +1,6 @@
+import {mkdir,writeFile} from 'node:fs/promises';
+const source='https://servicodados.ibge.gov.br/api/v1/localidades/municipios?orderBy=nome';
+const response=await fetch(source,{signal:AbortSignal.timeout(45000)});if(!response.ok)throw Error('IBGE HTTP '+response.status);const rows=await response.json();
+const states={11:'RO',12:'AC',13:'AM',14:'RR',15:'PA',16:'AP',17:'TO',21:'MA',22:'PI',23:'CE',24:'RN',25:'PB',26:'PE',27:'AL',28:'SE',29:'BA',31:'MG',32:'ES',33:'RJ',35:'SP',41:'PR',42:'SC',43:'RS',50:'MS',51:'MT',52:'GO',53:'DF'};
+const cities={};for(const row of rows){const state=states[String(row.id).slice(0,2)];if(!state)throw Error('UF desconhecida');(cities[state]??=[]).push(row.nome);}for(const list of Object.values(cities))list.sort((a,b)=>a.localeCompare(b,'pt-BR'));
+if(Object.keys(cities).length!==27||rows.length<5500)throw Error('Lista de municípios incompleta');await mkdir('src/data',{recursive:true});await writeFile('src/data/cities.json',JSON.stringify(cities));await writeFile('src/data/cities-source.json',JSON.stringify({source,fetchedAt:new Date().toISOString(),municipalities:rows.length}));console.log('Municípios disponíveis:',rows.length,'UFs:',Object.keys(cities).length);

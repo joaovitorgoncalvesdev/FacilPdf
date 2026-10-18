@@ -1,0 +1,3 @@
+import {describe,it,expect} from 'vitest';
+import {citiesFor,canonicalCity,stateForCity,stateNames} from './locations';
+describe('Estados e municípios oficiais',()=>{it('inclui os 27 estados e mais de 5500 municípios',()=>{expect(Object.keys(stateNames)).toHaveLength(27);expect(Object.keys(stateNames).reduce((n,s)=>n+citiesFor(s).length,0)).toBeGreaterThan(5500);});it('filtra municípios e corrige acentuação sem trocar estado',()=>{expect(canonicalCity('anage','BA')).toBe('Anagé');expect(canonicalCity('Anagé','SP')).toBeUndefined();expect(citiesFor('BA')).toContain('Vitória da Conquista');});it('não adivinha estado para cidades com nomes repetidos',()=>{expect(stateForCity('Bom Jesus')).toBeUndefined();expect(stateForCity('Anagé')).toBe('BA');});});
