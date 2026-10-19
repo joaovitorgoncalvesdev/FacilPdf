@@ -226,7 +226,7 @@ Os formulários usam duas colunas, intervalo de 18px por 15px e padding lateral 
 - Até 640px: navegação horizontal no topo, sem cabeçalho superior ou nota lateral; conteúdo com margens de 16px. O formulário mantém duas colunas. A barra de ações usa duas colunas e a ação final ocupa toda a largura. Registros do histórico permitem quebra de linha.
 - A partir de 1600px: intervalos do formulário aumentam para 22px por 17px; prévia vazia tem mínimo de 590px e PDF tem altura de 690px.
 
-A prévia vazia mede no mínimo 542px no desktop, 410px até 960px e 430px até 640px. O PDF usa altura de 610px no desktop e 510px no celular.
+A prévia vazia mede no mínimo 542px no desktop, 410px até 960px e 430px até 640px. O PDF renderizado em canvas acompanha a largura disponível e a proporção da página; não usa a altura fixa do antigo leitor embutido.
 
 Os grupos de pessoa usam intervalo de 16px entre campos e padding lateral de 23px, reduzido para 17px até 1190px. Nesse ponto o scanner usa colunas de no mínimo 270px e 310px e intervalo de 16px. Até 960px, o scanner empilha seus painéis e organiza as opções de leitura em duas colunas; até 640px, essas opções passam a uma coluna e os rótulos dos resultados permitem quebra. A prévia do editor fica presa a 16px do topo no desktop e volta ao fluxo até 960px. A ação inferior de importação permanece no fluxo do painel.
 
@@ -250,6 +250,8 @@ O scanner usa borda tracejada de 1.5px e área branca. Durante a leitura muda pa
 
 A escolha de um ou dois doadores usa um select nativo junto de título e instrução, separado do formulário por divisor. UF, estado civil e tratamento também usam selects nativos, com a mesma altura dos campos, borda `input-border`, raio `native-control` e foco de 2px em `focus`, afastado 1px. Os rótulos continuam visíveis; o asterisco verde sinaliza obrigatoriedade.
 
+A quantidade de donatários usa o mesmo padrão de título, instrução e select nativo, de um a dez. Cada pessoa tem sua própria seção; a faixa de abas permite rolagem horizontal, mantém os rótulos em uma linha e largura mínima de 93px por aba. A matrícula usa o campo comum com indicação de opcionalidade, sem asterisco obrigatório.
+
 Qualificação e filiação, endereço e registros adicionais usam grupos nativos `details/summary`, fechados inicialmente, com divisor superior e indicação discreta de “opcional”. O resumo aberto se afasta 20px dos campos. Endereços permanecem separados por pessoa; copiar o endereço do doador 1 é uma ação explícita.
 
 ### Aparência e preenchimento assistido
@@ -268,7 +270,13 @@ Cada pessoa tem duas linhas de rádio em um `fieldset` com legenda acessível. A
 
 A área de upload permite selecionar e adicionar arquivos, cancelar a leitura e refazê-la. As opções combinam caixas de seleção para leitura aprofundada e união de frente/verso, além de select de orientação. Progresso e avisos aparecem junto dos arquivos; uma seção expansível permite conferir a imagem e a orientação. O texto extraído tem revisão por arquivo e ação explícita para reanálise.
 
-O painel branco de revisão usa os mesmos contornos e raio de painel, com padding de 23px, reduzido para 18px até 1190px e 17px no celular. O topo permite escolher um ou dois doadores. Cada pessoa tem título, instrução e select de destino; os dados do imóvel formam grupo próprio. Cada informação combina caixa de seleção, select do campo, valor editável, aviso quando necessário e origem expansível. “CPF válido” combina ícone e texto em verde; avisos usam `review-warning`. Valores já preenchidos são mostrados em texto secundário, com indicação de que serão mantidos quando a substituição estiver desmarcada. A substituição é uma escolha explícita junto da ação final, que informa a quantidade de campos selecionados.
+O painel de revisão acompanha a superfície do modo escolhido, com os mesmos contornos e raio de painel, padding de 23px, reduzido para 18px até 1190px e 17px no celular. O topo permite escolher um ou dois doadores e de um a dez donatários; os controles permitem quebra de linha. O resumo de pessoas identificadas e CPFs válidos é um estado textual em verde, 12px, entrelinha 1.6 e margem inferior de 18px, orientando conferir o destino. Cada pessoa tem título, instrução e select de destino entre as pessoas ativas; os dados do imóvel formam grupo próprio. Cada informação combina caixa de seleção, select do campo, valor editável, aviso quando necessário e origem expansível. “CPF válido” combina ícone e texto em verde; avisos de CPF e data usam `review-warning` e texto explícito para correção antes de aplicar. Valores já preenchidos são mostrados em texto secundário, com indicação de que serão mantidos quando a substituição estiver desmarcada. A substituição é uma escolha explícita junto da ação final, que informa a quantidade de campos selecionados.
+
+### Conexão local e prévia paginada
+
+O painel de conexão com o Word usa a superfície e borda de painel, raio de 10px, padding de 18px por 20px e intervalo de 12px por 24px. O título textual distingue conexão disponível, verificação e ativação necessária. Instruções e link de download do conversor usam 12px; erros usam `review-warning` com alerta textual. “Verificar conexão” é uma ação suave explícita, indisponível durante a verificação. O grupo de ações é vertical; o `details/summary` de ativação ocupa toda a largura. Até 640px, o padding passa a 16px e o grupo de ações ocupa a largura disponível.
+
+A prévia usa PDF.js em canvas branco, inclusive no modo escuro. A navegação fica centralizada acima da página, com intervalo de 15px, margem inferior de 16px e contador “Página X de Y” em 12px anunciado como atualização discreta. Botões suaves têm nomes acessíveis e ficam desabilitados nos limites. O canvas é centralizado, tem largura máxima de 100% e altura proporcional. Carregamento aparece como estado textual; falhas aparecem como alerta que orienta abrir ou baixar o PDF original. Esses padrões reutilizam os tokens existentes, sem nova paleta ou elevação.
 
 O foco global usa contorno de 3px em `focus`, afastado 3px. Mudanças de fundo e texto duram 160ms com `ease-out`; mensagens entram em 180ms com deslocamento de 3px. Esses movimentos só são aplicados em `prefers-reduced-motion: no-preference`.
 

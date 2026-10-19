@@ -22,6 +22,9 @@ import {
   personFields,
   landFields,
   validCPF,
+  validDate,
+  dateInput,
+  formatCPF,
   type FormData,
   type PersonKey,
 } from "./model";
@@ -34,12 +37,14 @@ type Props = {
   ) => boolean;
   announce: (message: string) => void;
   onDonorCountChange: (count: 1 | 2) => void;
+  onRecipientCountChange: (count: number) => void;
 };
 export default function ScannerView({
   data,
   onApply,
   announce,
   onDonorCountChange,
+  onRecipientCountChange,
 }: Props) {
   const [findings, setFindings] = useState<Finding[]>([]),
     [busy, setBusy] = useState(false),
@@ -71,6 +76,18 @@ export default function ScannerView({
     return activePeople(data).includes(chosen) ? chosen : "recipient";
   };
   function applyResults() {
+    const invalid = findings.find(
+      (f) =>
+        f.selected &&
+        ((f.field === "cpf" && !validCPF(f.value)) ||
+          (f.field === "birth" && !validDate(dateInput(f.value)))),
+    );
+    if (invalid) {
+      announce(
+        `Confira ${invalid.label}: ${invalid.value}. Corrija o valor ou desmarque antes de importar.`,
+      );
+      return;
+    }
     const resolved = Object.fromEntries(
       groups.filter((g) => g !== "property").map((g) => [g, destination(g)]),
     ) as Record<string, PersonKey>;
@@ -94,6 +111,23 @@ export default function ScannerView({
   }
   async function scan(files: File[], append = false) {
     if (!files.length) return;
+    if (append) {
+      files = files.filter(
+        (file) =>
+          !lastFiles.current.some(
+            (old) =>
+              old.name === file.name &&
+              old.size === file.size &&
+              old.lastModified === file.lastModified,
+          ),
+      );
+      if (!files.length) {
+        announce(
+          "Esses arquivos já foram lidos. Use Refazer leitura para analisar novamente.",
+        );
+        return;
+      }
+    }
     const sourceFiles = append
       ? [
           ...lastFiles.current,
@@ -361,6 +395,22 @@ export default function ScannerView({
         )}
       </section>
       <section className="scan-review-panel">
+        {findings.length > 0 && (
+          <p className="scan-summary" role="status">
+            {groups.filter((group) => group !== "property").length} pessoa(s)
+            identificada(s) ·{" "}
+            {
+              new Set(
+                findings
+                  .filter(
+                    (item) => item.field === "cpf" && validCPF(item.value),
+                  )
+                  .map((item) => item.value),
+              ).size
+            }{" "}
+            CPF(s) válido(s). Confira o destino de cada pessoa abaixo.
+          </p>
+        )}
         <div className="scan-contract-count">
           <label>
             Doadores neste contrato
@@ -373,6 +423,20 @@ export default function ScannerView({
             >
               <option value="1">1 doador</option>
               <option value="2">2 doadores</option>
+            </select>
+          </label>
+          <label>
+            Donatários neste contrato
+            <select
+              aria-label="Quantidade de donatários no scanner"
+              value={data.recipientCount}
+              onChange={(e) => onRecipientCountChange(Number(e.target.value))}
+            >
+              {Array.from({ length: 10 }, (_, i) => (
+                <option key={i + 1} value={i + 1}>
+                  {i + 1} {i === 0 ? "donatário" : "donatários"}
+                </option>
+              ))}
             </select>
           </label>
           {findings.length > 0 && (
@@ -530,9 +594,22 @@ export default function ScannerView({
                               aria-label={item.label}
                               disabled={busy}
                               value={item.value}
-                              onChange={(e) =>
-                                update(item.id, { value: e.target.value })
-                              }
+                              onChange={(e) => {
+                                const value =
+                                  item.field === "cpf"
+                                    ? formatCPF(e.target.value)
+                                    : e.target.value;
+                                update(item.id, {
+                                  value,
+                                  ...(item.field === "cpf"
+                                    ? {
+                                        warning: validCPF(value)
+                                          ? undefined
+                                          : "CPF inválido. Confira os números no documento.",
+                                      }
+                                    : {}),
+                                });
+                              }}
                             />
                             {item.warning && (
                               <small className="review-warning">

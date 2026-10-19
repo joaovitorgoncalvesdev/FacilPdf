@@ -1,5 +1,6 @@
 import { canonicalCity } from "./locations";
-export type PersonKey = "donor1" | "donor2" | "recipient";
+export type PersonKey =
+  "donor1" | "donor2" | "recipient" | `recipient${number}`;
 export type SignatureMode = "signature" | "fingerprint";
 export type Person = {
   name: string;
@@ -27,6 +28,8 @@ export type Person = {
   signature: SignatureMode;
 };
 export type FormData = {
+  [key: `recipient${number}`]: Person;
+  recipientCount: number;
   donorCount: 1 | 2;
   donor1: Person;
   donor2: Person;
@@ -74,6 +77,7 @@ export const person = (gender: Person["gender"] = "male"): Person => ({
   signature: "signature",
 });
 export const emptyForm = (): FormData => ({
+  recipientCount: 1,
   donorCount: 1,
   donor1: person(),
   donor2: person("female"),
@@ -125,21 +129,41 @@ export const states = [
   "TO",
 ];
 export const personLabels: Record<PersonKey, string> = {
+  ...Object.fromEntries(
+    Array.from({ length: 9 }, (_, i) => [
+      `recipient${i + 2}`,
+      `Donatário ${i + 2}`,
+    ]),
+  ),
   donor1: "Doador 1",
   donor2: "Doador 2",
   recipient: "Donatário",
 };
-export const activePeople = (d: FormData): PersonKey[] =>
-  d.donorCount === 1
-    ? ["donor1", "recipient"]
-    : ["donor1", "donor2", "recipient"];
+export const recipientKeys = (d: FormData): PersonKey[] =>
+  Array.from({ length: d.recipientCount || 1 }, (_, i) =>
+    i === 0 ? "recipient" : (`recipient${i + 1}` as PersonKey),
+  );
+export const activePeople = (d: FormData): PersonKey[] => [
+  ...(d.donorCount === 1
+    ? ["donor1" as const]
+    : ["donor1" as const, "donor2" as const]),
+  ...recipientKeys(d),
+];
 export function normalizeForm(input: Partial<FormData>): FormData {
   const data = {
     ...emptyForm(),
     ...input,
     donorCount: input.donorCount === 1 ? 1 : 2,
+    recipientCount: Math.max(
+      1,
+      Math.min(10, Math.floor(Number(input.recipientCount) || 1)),
+    ),
   } as FormData;
-  for (const who of ["donor1", "donor2", "recipient"] as const) {
+  for (const who of [
+    "donor1",
+    "donor2",
+    ...recipientKeys(data),
+  ] as PersonKey[]) {
     data[who] = {
       ...person(who === "donor2" ? "female" : "male"),
       ...input[who],
@@ -298,7 +322,6 @@ export function validate(data: FormData) {
   }
   for (const [key, label] of [
     ["land", "Nome da terra"],
-    ["registry", "Matrícula"],
     ["totalArea", "Área total"],
     ["donatedArea", "Área doada"],
     ["lot", "Nome do lote"],

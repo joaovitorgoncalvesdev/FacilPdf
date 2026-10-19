@@ -124,7 +124,7 @@ export function extract(input: string, source?: string): Finding[] {
     .replace(/\bR[ .]*G\b/gi, "RG");
   const anchors: { index: number; name: string }[] = [];
   for (const m of text.matchAll(
-    /(?:^|\n|:\s*|\be\s+)([\p{Lu}][\p{L}'’ -]{4,100}),\s*(brasileir[oa]|estrangeir[oa]|portugu[eê]s[a]?)[,\s]/gu,
+    /(?:^|\n|:\s*|;\s*(?:e\s+)?|\be\s+)([\p{Lu}][\p{L}'’ -]{4,100}),\s*(?:(?:brasileir[oa]|estrangeir[oa]|portugu[eê]s[a]?)[,\s]|(?=CPF\s*:|portador[ae]?\b|nascid[oa]\b))/gu,
   )) {
     if (isName(m[1]))
       anchors.push({
@@ -137,7 +137,10 @@ export function extract(input: string, source?: string): Finding[] {
     /(?:^|\n)\s*(?:\d+[a-z]?\s*[-./]?\s*)?(?:NOME(?:\s+COMPLETO|\s+E\s+SOBRENOME)?|NOME\s+DO\s+(?:TITULAR|PORTADOR)|NOME\s+CIVIL|DONAT[ÁA]RIO|DOADOR(?:A)?)\s*(?=[:\n-]|$)[: -]*/gim,
   )) {
     if (isName(x.value))
-      anchors.push({ index: x.index, name: cleanName(x.value) });
+      anchors.push({
+        index: Math.max(x.index, text.indexOf(cleanName(x.value), x.index)),
+        name: cleanName(x.value),
+      });
   }
   // Unlabelled name line in a Brazilian identity card, excluding issuer/header lines.
   if (!anchors.length) {
@@ -164,7 +167,7 @@ export function extract(input: string, source?: string): Finding[] {
   );
   const roleMarkers = [
     ...text.matchAll(
-      /\b(DOADORES|DOADORAS|DOADOR|DOADORA|DONATÁRIO|DONATÁRIA)\s*:/gi,
+      /\b(DOADORES|DOADORAS|DOADOR|DOADORA|DONATÁRIOS|DONATÁRIAS|DONATÁRIO|DONATÁRIA)\s*:/gi,
     ),
   ];
   const roles: Record<string, PersonKey> = {};
@@ -172,8 +175,13 @@ export function extract(input: string, source?: string): Finding[] {
     const marker = roleMarkers.filter((m) => m.index! <= anchor.index).at(-1);
     if (!marker) return;
     const role = fold(marker[1]);
-    if (role.startsWith("donat")) roles[`person-${i + 1}`] = "recipient";
-    else {
+    if (role.startsWith("donat")) {
+      const index = unique.filter(
+        (a) => a.index >= marker.index! && a.index <= anchor.index,
+      ).length;
+      roles[`person-${i + 1}`] =
+        index === 1 ? "recipient" : `recipient${Math.min(index, 10)}`;
+    } else {
       const index = unique.filter(
         (a) => a.index >= marker.index! && a.index <= anchor.index,
       ).length;
@@ -534,12 +542,25 @@ export function mergeFindings(
     const cpf = next.find(
       (x) => x.group === group && x.field === "cpf" && !x.warning,
     )?.value;
-    const match = previous.find(
-      (x) =>
-        x.group !== "property" &&
-        ((x.field === "name" && name && fold(x.value) === fold(name)) ||
-          (x.field === "cpf" && cpf && x.value === cpf)),
-    );
+    const match =
+      previous.find(
+        (x) =>
+          x.group !== "property" && x.field === "cpf" && cpf && x.value === cpf,
+      ) ||
+      previous.find((x) => {
+        if (
+          x.group === "property" ||
+          x.field !== "name" ||
+          !name ||
+          fold(x.value) !== fold(name)
+        )
+          return false;
+        const existing = previous.find(
+          (item) =>
+            item.group === x.group && item.field === "cpf" && !item.warning,
+        )?.value;
+        return !cpf || !existing || cpf === existing;
+      });
     const existingName = previous.find(
       (x) => x.group === groups[0] && x.field === "name",
     )?.value;

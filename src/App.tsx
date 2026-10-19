@@ -26,6 +26,7 @@ import {
   dateInput,
   personLabels,
   activePeople,
+  recipientKeys,
   type PersonKey,
   personFields,
   landFields,
@@ -47,6 +48,8 @@ import { generateDocx, convertPdf } from "./template";
 import { personKeys, type Finding } from "./scanner";
 import { PersonEditor, PropertyEditor } from "./ContractForm";
 import ScannerView from "./ScannerView";
+import PdfPreview from "./PdfPreview";
+import { checkConverter } from "./converter";
 type View = "editor" | "scanner" | "history" | "settings";
 const titles = {
   editor: "Novo documento",
@@ -66,6 +69,25 @@ export default function App() {
   const [message, setMessage] = useState("");
   const [errors, setErrors] = useState<string[]>([]);
   const [busy, setBusy] = useState(false);
+  const [connection, setConnection] = useState<
+    "unknown" | "checking" | "connected" | "failed"
+  >("unknown");
+  const [connectionError, setConnectionError] = useState("");
+  async function connectWord() {
+    setConnection("checking");
+    setConnectionError("");
+    try {
+      await checkConverter();
+      setConnection("connected");
+    } catch (error) {
+      setConnection("failed");
+      setConnectionError(
+        error instanceof Error
+          ? error.message
+          : "Não foi possível conectar ao Word.",
+      );
+    }
+  }
   const [pdf, setPdf] = useState<Blob>();
   const [pdfUrl, setPdfUrl] = useState("");
   const [dirty, setDirty] = useState(false);
@@ -111,7 +133,19 @@ export default function App() {
     setErrors([]);
   };
   const announce = (s: string) => setMessage(s);
-  async function makePDF() {
+  async function persistPDF(blob: Blob, savedData: FormData) {
+    download(blob, filename(savedData.recipient.name, "pdf"));
+    try {
+      await saveRecord(savedData, blob);
+      setRecords(await listRecords());
+      announce("PDF baixado e salvo no histórico.");
+    } catch {
+      announce(
+        "PDF enviado para download. O histórico não pôde ser salvo; confira o espaço disponível neste navegador.",
+      );
+    }
+  }
+  async function makePDF(save = false) {
     const snapshot = JSON.stringify(data);
     const issues = validate(data);
     setErrors(issues);
@@ -123,15 +157,24 @@ export default function App() {
     try {
       const docx = await generateDocx(data);
       const blob = await convertPdf(docx);
+      setConnection("connected");
+      setConnectionError("");
       setPdf(blob);
       const changed = JSON.stringify(currentData.current) !== snapshot;
       setDirty(changed);
-      announce(
-        changed
-          ? "Os dados mudaram durante a conversão. Atualize a prévia antes de salvar."
-          : "PDF pronto. Confira o documento e salve no histórico.",
-      );
+      if (save && !changed)
+        await persistPDF(blob, JSON.parse(snapshot) as FormData);
+      else
+        announce(
+          changed
+            ? "Os dados mudaram durante a conversão. Atualize a prévia antes de salvar."
+            : "PDF pronto. Confira o documento e salve no histórico.",
+        );
     } catch (e) {
+      setConnection("failed");
+      setConnectionError(
+        e instanceof Error ? e.message : "Não foi possível gerar o PDF.",
+      );
       announce(
         e instanceof Error ? e.message : "Não foi possível gerar o PDF.",
       );
@@ -140,13 +183,13 @@ export default function App() {
     }
   }
   async function savePDF() {
-    if (!pdf || dirty) return;
+    if (!pdf || dirty) {
+      await makePDF(true);
+      return;
+    }
     setBusy(true);
     try {
-      await saveRecord(data, pdf);
-      setRecords(await listRecords());
-      download(pdf, filename(data.recipient.name, "pdf"));
-      announce("PDF salvo no histórico e enviado para download.");
+      await persistPDF(pdf, structuredClone(data));
     } catch {
       announce(
         "Não foi possível salvar o histórico. Verifique o espaço disponível.",
@@ -240,6 +283,21 @@ export default function App() {
     section in personLabels
       ? (section as keyof typeof personLabels)
       : undefined;
+  const sections = [
+    ...recipientKeys(data).map((key) => [key, personLabels[key]]),
+    ["donor1", "Doador 1"],
+    ...(data.donorCount === 2 ? [["donor2", "Doador 2"]] : []),
+    ["land", "Imóvel e data"],
+  ];
+  function changeRecipientCount(count: number) {
+    const next = normalizeForm({ ...data, recipientCount: count });
+    edit(next);
+    if (
+      section.startsWith("recipient") &&
+      !recipientKeys(next).includes(section as PersonKey)
+    )
+      setSection("recipient");
+  }
   const savedPeople = [
     ...new Map(
       records
@@ -408,8 +466,9 @@ export default function App() {
                     <strong>Instrumento particular de doação</strong>
                     <span>
                       Modelo original · {data.donorCount}{" "}
-                      {data.donorCount === 1 ? "doador" : "doadores"} · Um
-                      donatário
+                      {data.donorCount === 1 ? "doador" : "doadores"} ·{" "}
+                      {data.recipientCount}{" "}
+                      {data.recipientCount === 1 ? "donatário" : "donatários"}
                     </span>
                   </div>
                 </div>
@@ -417,6 +476,63 @@ export default function App() {
                   <Scan /> Importar dados <ArrowRight />
                 </Button>
               </div>
+              <section
+                className="converter-status"
+                aria-label="Conexão com o Word local"
+              >
+                <div>
+                  <strong>
+                    {connection === "connected"
+                      ? "Word conectado · PDF disponível"
+                      : connection === "checking"
+                        ? "Verificando o Word…"
+                        : "Ative o Word local para gerar PDF"}
+                  </strong>
+                  <p>
+                    O scanner e o Word preenchido funcionam sem conexão com o
+                    conversor. Para gerar PDF com a formatação original, abra
+                    ABRIR-SITE.cmd neste computador.
+                  </p>
+                  {connectionError && <p role="alert">{connectionError}</p>}
+                </div>
+                <div className="converter-actions">
+                  <Button
+                    variant="soft"
+                    disabled={connection === "checking" || busy}
+                    onClick={() => void connectWord()}
+                  >
+                    Verificar conexão
+                  </Button>
+                  <a
+                    href={`${import.meta.env.BASE_URL}downloads/Conversor-FacilPDF.zip`}
+                    download
+                  >
+                    Baixar conversor do Word
+                  </a>
+                </div>
+                <details>
+                  <summary>Como ativar o PDF</summary>
+                  <ol>
+                    <li>
+                      Baixe o conversor, extraia a pasta e abra ABRIR-SITE.cmd
+                      no Windows com Word instalado.
+                    </li>
+                    <li>
+                      Mantenha a janela aberta durante o uso. Quando solicitado
+                      pelo navegador, permita o acesso à rede local para este
+                      site.
+                    </li>
+                    <li>
+                      Clique em Verificar conexão. Depois use Gerar prévia ou
+                      Salvar PDF e histórico.
+                    </li>
+                  </ol>
+                  <p>
+                    Em celular ou computador sem Word, baixe o Word preenchido e
+                    abra-o em um computador com o conversor.
+                  </p>
+                </details>
+              </section>
               <div className="participant-config">
                 <div>
                   <strong>Quantas pessoas estão doando?</strong>
@@ -440,6 +556,26 @@ export default function App() {
                   <option value="2">2 doadores</option>
                 </select>
               </div>
+              <div className="participant-config">
+                <div>
+                  <strong>Quantas pessoas recebem a doação?</strong>
+                  <span>
+                    Cada donatário terá seus próprios dados e sua forma de
+                    assinar.
+                  </span>
+                </div>
+                <select
+                  aria-label="Quantidade de donatários"
+                  value={data.recipientCount}
+                  onChange={(e) => changeRecipientCount(Number(e.target.value))}
+                >
+                  {Array.from({ length: 10 }, (_, i) => (
+                    <option key={i + 1} value={i + 1}>
+                      {i + 1} {i === 0 ? "donatário" : "donatários"}
+                    </option>
+                  ))}
+                </select>
+              </div>
               <div className="editor-layout">
                 <section className="form-panel" aria-label="Preenchimento">
                   <div className="panel-header">
@@ -451,25 +587,16 @@ export default function App() {
                     role="tablist"
                     aria-label="Seções do formulário"
                   >
-                    {[
-                      ["recipient", "Donatário"],
-                      ["donor1", "Doador 1"],
-                      ["donor2", "Doador 2"],
-                      ["land", "Imóvel e data"],
-                    ]
-                      .filter(
-                        ([id]) => id !== "donor2" || data.donorCount === 2,
-                      )
-                      .map(([id, label]) => (
-                        <button
-                          role="tab"
-                          aria-selected={section === id}
-                          key={id}
-                          onClick={() => setSection(id)}
-                        >
-                          {label}
-                        </button>
-                      ))}
+                    {sections.map(([id, label]) => (
+                      <button
+                        role="tab"
+                        aria-selected={section === id}
+                        key={id}
+                        onClick={() => setSection(id)}
+                      >
+                        {label}
+                      </button>
+                    ))}
                   </div>
                   <details className="completion-check">
                     <summary>
@@ -505,8 +632,10 @@ export default function App() {
                         : "Imóvel e assinatura"}
                     </h3>
                     <p>
-                      {section === "recipient"
-                        ? "Quem recebe a doação. O arquivo será salvo com este nome."
+                      {section.startsWith("recipient")
+                        ? data.recipientCount === 1
+                          ? "Quem recebe a doação. O arquivo será salvo com este nome."
+                          : "Quem recebe a doação. O arquivo será salvo com o nome do primeiro donatário."
                         : section === "land"
                           ? "Identificação da terra e da fração que será doada."
                           : "Dados de quem transfere a propriedade."}
@@ -607,20 +736,16 @@ export default function App() {
                         variant="soft"
                         onClick={() =>
                           setSection(
-                            section === "recipient"
-                              ? "donor1"
-                              : section === "donor1"
-                                ? data.donorCount === 2
-                                  ? "donor2"
-                                  : "land"
-                                : "land",
+                            sections[
+                              sections.findIndex(([key]) => key === section) + 1
+                            ]?.[0] || "land",
                           )
                         }
                       >
                         Próxima seção <ArrowRight />
                       </Button>
                     ) : (
-                      <Button disabled={busy} onClick={makePDF}>
+                      <Button disabled={busy} onClick={() => void makePDF()}>
                         Gerar prévia <ArrowRight />
                       </Button>
                     )}
@@ -642,11 +767,7 @@ export default function App() {
                   </div>
                   <div className="preview-stage">
                     {pdfUrl ? (
-                      <iframe
-                        title="PDF gerado a partir do Word original"
-                        src={`${pdfUrl}#toolbar=0`}
-                        className="pdf-frame"
-                      />
+                      <PdfPreview blob={pdf!} />
                     ) : (
                       <div className="preview-empty">
                         <div className="paper-sample">
@@ -668,7 +789,7 @@ export default function App() {
                         <Button
                           variant="outline"
                           disabled={busy}
-                          onClick={makePDF}
+                          onClick={() => void makePDF()}
                         >
                           {busy
                             ? "Convertendo documento…"
@@ -702,10 +823,10 @@ export default function App() {
                   <Button variant="outline" onClick={word} disabled={busy}>
                     <DownloadSimple /> Baixar Word
                   </Button>
-                  <Button disabled={busy} onClick={makePDF}>
+                  <Button disabled={busy} onClick={() => void makePDF()}>
                     {busy ? "Gerando…" : "Atualizar prévia"}
                   </Button>
-                  <Button disabled={!pdf || dirty || busy} onClick={savePDF}>
+                  <Button disabled={busy || !ready} onClick={savePDF}>
                     <DownloadSimple /> Salvar PDF e histórico
                   </Button>
                 </div>
@@ -718,6 +839,7 @@ export default function App() {
               onApply={applyScan}
               announce={announce}
               onDonorCountChange={(donorCount) => edit({ ...data, donorCount })}
+              onRecipientCountChange={changeRecipientCount}
             />
           </div>
           {view === "history" && (

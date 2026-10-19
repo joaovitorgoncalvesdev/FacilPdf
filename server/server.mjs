@@ -26,6 +26,7 @@ const origins = new Set(
     "http://localhost:5174",
     "http://127.0.0.1:4173",
     "http://localhost:4173",
+    "https://joaovitorgoncalvesdev.github.io",
     process.env.APP_ORIGIN,
   ].filter(Boolean),
 );

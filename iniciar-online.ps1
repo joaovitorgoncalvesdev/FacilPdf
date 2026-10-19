@@ -9,7 +9,9 @@ if (-not $taskNode) {
 }
 if (-not $taskNode) { throw 'Instale Node.js 22 LTS ou mais recente e abra novamente.' }
 if (-not (Test-Path -LiteralPath 'node_modules')) {
-    & (Join-Path (Split-Path $taskNode) 'npm.cmd') ci
+    $taskNpm = (Get-Command npm.cmd -ErrorAction SilentlyContinue).Source
+    if (-not $taskNpm) { throw 'Instale Node.js 22 LTS com npm e abra novamente: https://nodejs.org/' }
+    if (Test-Path -LiteralPath 'package-lock.json') { & $taskNpm ci } else { & $taskNpm install --omit=dev --ignore-scripts }
     if ($LASTEXITCODE -ne 0) { throw 'Não foi possível instalar as dependências.' }
 }
 New-Item -ItemType Directory -Path '.local' -Force | Out-Null

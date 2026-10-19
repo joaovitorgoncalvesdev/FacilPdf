@@ -23,10 +23,10 @@ Na primeira instalação, copie `.env.example` para `.env.local`. O valor local 
 
 ## Fluxo
 
-1. Escolha **um ou dois doadores**. Preencha cada participante e o imóvel. RG, órgão expedidor, UF, município e endereço estão separados. Endereços são independentes, com opção de copiar o endereço do primeiro doador.
+1. Escolha **um ou dois doadores e de um a dez donatários**. Preencha cada participante e o imóvel. RG, órgão expedidor, UF, município e endereço estão separados. Endereços são independentes, com opção de copiar o endereço do primeiro doador.
 2. Para cada pessoa, selecione **Assinatura à mão** ou **Impressão digital**. O PDF terá linha ou quadrado acima dos respectivos dados, exclusivamente conforme essa escolha. Sem digitais, não há quadrados. O texto do contrato se adapta ao singular ou plural.
 3. No Scanner, importe frente, verso, PDFs e Word juntos. Confira os grupos por pessoa e o destino no contrato. O scanner sugere doador/donatário quando esses papéis estão explícitos no arquivo. CPF inválido, filiação ambígua e valores conflitantes ficam sinalizados. Você pode corrigir os valores, reclassificar o campo ou completar informações manualmente.
-4. Gere a prévia, confira todas as páginas e clique em **Salvar PDF e histórico**. O arquivo recebe o nome do donatário.
+4. Gere a prévia, confira todas as páginas e clique em **Salvar PDF e histórico**. O arquivo recebe o nome do primeiro donatário.
 5. No Histórico, pesquise, reabra, baixe, exclua ou exporte um backup ZIP com PDFs e campos. Restaurar um backup cria novas entradas.
 
 Nascimento, naturalidade, filiação, CAR, CCIR, cartório e informações complementares são opcionais. Quando preenchidos, entram no contrato. Nada é inventado para completar campos vazios.
@@ -85,3 +85,13 @@ npm run build
 Os testes cobrem validação de CPF, campos obrigatórios, nomes de arquivo e extração de dados. O fluxo de navegador também foi exercitado durante a implementação: geração via Word, nome do download, persistência após recarregar, leitura DOCX e OCR de imagem. Dados do modelo original usados na verificação ficam apenas em `.local`, que é ignorada pelo Git.
 
 Na versão flexível, foram gerados e inspecionados PDFs com um doador e duas assinaturas; um doador com digital; dois doadores com três assinaturas; dois doadores com combinação de linha/digital; e todos com digital. Sem digitais, a contagem de quadrados foi zero; em cada outra combinação, correspondeu exatamente à escolha dos participantes. As cinco amostras ocuparam duas páginas sem sobreposição. Também foram testados OCR com sombra e documento invertido, RG/CNH com campos em linhas separadas e aplicação de CPF/RG às três pessoas corretas. O documento adaptável muda a identificação, concordância e assinaturas em relação ao original, de acordo com as escolhas do usuário.
+
+## PDF, conexão e scanner
+
+O painel **Conexão com o Word local** permite verificar manualmente se o conversor está disponível. No site publicado, **Baixar conversor do Word** fornece um ZIP com o iniciador e o serviço local. Extraia os arquivos e abra `ABRIR-SITE.cmd` em um Windows com Word e Node.js 22 LTS instalados. A primeira execução instala apenas as dependências do conversor. Mantenha a janela aberta e permita a rede local no navegador quando solicitado.
+
+A prévia usa PDF.js para mostrar o PDF verdadeiro, com botões de página, em desktop e celular. Não depende de iframe ou do leitor PDF do navegador. **Salvar PDF e histórico** gera um PDF atualizado quando necessário e baixa com o nome do primeiro donatário; se faltar espaço no histórico, o download ainda é disponibilizado. Alterações durante a conversão impedem salvar uma versão desatualizada.
+
+A matrícula é opcional. Sem valor, a cláusula omite a expressão de matrícula. Donatários adicionais têm sua própria qualificação e assinatura/digital, com concordância no plural. Reduzir a quantidade exclui essas pessoas do PDF; os dados ficam no rascunho para poder reativá-las.
+
+O scanner reconhece nomes em qualificação resumida e contratos com donatários no plural, distribui sugestões por participante e recusa importar CPF ou data inválidos selecionados. Homônimos com CPFs válidos diferentes ficam separados. A leitura aprofundada tenta reforço quando faltam nome ou nascimento e revê orientação quando não encontra dados de identificação úteis. Resultados continuam sujeitos à conferência do usuário.

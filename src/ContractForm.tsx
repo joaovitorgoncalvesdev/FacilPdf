@@ -445,7 +445,6 @@ export function PropertyEditor({
             label="Matrícula"
             value={data.registry}
             onChange={(v) => set("registry", v)}
-            required
           />
           <Field
             label="Área total (hectares)"

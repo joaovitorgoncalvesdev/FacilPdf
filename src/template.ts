@@ -1,6 +1,8 @@
 import PizZip from "pizzip";
+import { converterUrl, checkConverter } from "./converter";
 import {
   activePeople,
+  recipientKeys,
   addressOf,
   locationOf,
   normalizeForm,
@@ -14,7 +16,7 @@ export function values(input: FormData) {
     lot_start: data.lot.slice(0, 15),
     lot_end: data.lot.slice(15),
   };
-  for (const who of ["donor1", "donor2", "recipient"] as const)
+  for (const who of activePeople(data))
     for (const [field, value] of Object.entries(data[who]))
       out[`${who}_${field}`] = String(value);
   for (const [key, value] of Object.entries(data))
@@ -119,10 +121,32 @@ export function buildDocumentXml(xml: string, input: FormData) {
   const female = donorTerm.endsWith("A") || donorTerm.endsWith("AS");
   const article = plural ? (female ? "As" : "Os") : female ? "A" : "O";
   const contraction = plural ? (female ? "das" : "dos") : female ? "da" : "do";
-  const receiver =
-    data.recipient.gender === "female" ? "DONATÁRIA" : "DONATÁRIO";
-  const receiverArticle = data.recipient.gender === "female" ? "A" : "O";
-  const receiverTo = data.recipient.gender === "female" ? "à" : "ao";
+  const receivers = recipientKeys(data).map((key) => data[key]);
+  const receiversPlural = receivers.length > 1;
+  const receiversFemale = receivers.every(
+    (person) => person.gender === "female",
+  );
+  const receiver = receiversPlural
+    ? receiversFemale
+      ? "DONATÁRIAS"
+      : "DONATÁRIOS"
+    : receiversFemale
+      ? "DONATÁRIA"
+      : "DONATÁRIO";
+  const receiverArticle = receiversPlural
+    ? receiversFemale
+      ? "As"
+      : "Os"
+    : receiversFemale
+      ? "A"
+      : "O";
+  const receiverTo = receiversPlural
+    ? receiversFemale
+      ? "às"
+      : "aos"
+    : receiversFemale
+      ? "à"
+      : "ao";
   const donors = paragraphs.find((p) => txt(p).startsWith("DOADORES:"));
   const recipient = paragraphs.find((p) => txt(p).startsWith("DONATÁRIO:"));
   if (!donors || !recipient)
@@ -138,7 +162,7 @@ export function buildDocumentXml(xml: string, input: FormData) {
   ]);
   setParagraph(recipient, [
     { text: receiver + ": ", bold: true },
-    { text: qualification(data.recipient) + "." },
+    { text: receivers.map(qualification).join("; ") + "." },
   ]);
   const c1 = paragraphs.find((p) => txt(p).startsWith("CLÁUSULA 1"));
   const c2 = paragraphs.find((p) => txt(p).startsWith("CLÁUSULA 2"));
@@ -154,7 +178,7 @@ export function buildDocumentXml(xml: string, input: FormData) {
     setParagraph(c1, [
       { text: "CLÁUSULA 1ª", bold: true },
       {
-        text: ` - ${article} ${donorTerm} ${plural ? "declaram ser as" : "declara ser a"} ${owner} do imóvel, ${data.land}, matrícula nº ${data.registry}${data.registryOffice ? ", registrada no cartório " + data.registryOffice : ""}, situado na ${locationOf(data)}, com área total de ${data.totalArea} hectares.${data.car ? " CAR: " + data.car + "." : ""}${data.ccir ? " CCIR: " + data.ccir + "." : ""}`,
+        text: ` - ${article} ${donorTerm} ${plural ? "declaram ser as" : "declara ser a"} ${owner} do imóvel, ${data.land}${data.registry ? ", matrícula nº " + data.registry : ""}${data.registryOffice ? ", com registro no cartório " + data.registryOffice : ""}, situado na ${locationOf(data)}, com área total de ${data.totalArea} hectares.${data.car ? " CAR: " + data.car + "." : ""}${data.ccir ? " CCIR: " + data.ccir + "." : ""}`,
       },
     ]);
   // Fix article agreement for male and mixed owners, independently of participant count.
@@ -183,7 +207,7 @@ export function buildDocumentXml(xml: string, input: FormData) {
     setParagraph(c3, [
       { text: "CLÁUSULA 3ª", bold: true },
       {
-        text: ` - ${receiverArticle} ${receiver} afirma aceitar esta doação como rezado neste instrumento, para que lhe fique pertencendo o imóvel doado ${plural ? (female ? "pelas" : "pelos") : female ? "pela" : "pelo"} ${donorTerm}, sem qualquer condição.`,
+        text: ` - ${receiverArticle} ${receiver} ${receiversPlural ? "afirmam" : "afirma"} aceitar esta doação como rezado neste instrumento, para que ${receiversPlural ? "lhes" : "lhe"} fique pertencendo o imóvel doado ${plural ? (female ? "pelas" : "pelos") : female ? "pela" : "pelo"} ${donorTerm}, sem qualquer condição.`,
       },
     ]);
   if (data.additionalClause.trim() && c3) {
@@ -300,7 +324,7 @@ export function buildDocumentXml(xml: string, input: FormData) {
     if (p.rg) cell.append(makeP("RG: " + p.rg));
     cell.append(
       makeP(
-        who === "recipient"
+        who.startsWith("recipient")
           ? p.gender === "female"
             ? "Donatária"
             : "Donatário"
@@ -349,9 +373,8 @@ export async function generateDocx(data: FormData) {
   });
 }
 export async function convertPdf(docx: Blob) {
-  const endpoint =
-    (import.meta.env.VITE_CONVERTER_URL as string | undefined) ||
-    "http://127.0.0.1:8788";
+  await checkConverter();
+  const endpoint = converterUrl;
   const form = new FormData();
   form.append("file", docx, "documento.docx");
   const controller = new AbortController(),
@@ -373,6 +396,10 @@ export async function convertPdf(docx: Blob) {
       throw new Error("O conversor retornou um arquivo inválido.");
     return new Blob([blob], { type: "application/pdf" });
   } catch (error) {
+    if (error instanceof Error && error.name === "AbortError")
+      throw new Error(
+        "A conversão demorou demais. Feche avisos ou janelas pendentes do Word e tente novamente.",
+      );
     if (error instanceof TypeError)
       throw new Error(
         "Não foi possível acessar o Word local. Abra ABRIR-SITE.cmd ou INICIAR.cmd e, se o navegador pedir, permita o acesso à rede local.",

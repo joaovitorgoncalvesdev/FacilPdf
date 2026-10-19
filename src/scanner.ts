@@ -207,8 +207,19 @@ export async function readDocumentDetailed(
         onProgress("Conferindo campos com uma segunda leitura…");
         await run(original, "11");
         const best = Math.max(...passes.map((p) => p.confidence));
+        const found = passes.flatMap((pass) => extract(pass.text));
+        const missingName = !found.some(
+          (field) => field.field === "name" && !field.warning,
+        );
+        const missingBirth =
+          /NASC(?:IMENTO|ID[OA])|BIRTH|DATA E LOCAL/i.test(
+            passes.map((pass) => pass.text).join(" "),
+          ) &&
+          !found.some((field) => field.field === "birth" && !field.warning);
         if (
-          best < 75 ||
+          best < 80 ||
+          missingName ||
+          missingBirth ||
           !passes.some((p) =>
             extract(p.text).some((f) => f.field === "cpf" && !f.warning),
           )
@@ -221,7 +232,16 @@ export async function readDocumentDetailed(
             adaptive.width = 0;
           }
         }
-        if (Math.max(...passes.map((p) => p.score)) < 12) {
+        if (
+          Math.max(...passes.map((p) => p.score)) < 12 ||
+          !passes.some((pass) =>
+            extract(pass.text).some(
+              (field) =>
+                field.field === "name" ||
+                (field.field === "cpf" && validCPF(field.value)),
+            ),
+          )
+        ) {
           onProgress("Conferindo orientação da imagem…");
           for (const rotation of [90, 180, 270]) {
             const rotated = await prepareImage(original, rotation);
@@ -372,7 +392,10 @@ export async function readDocumentDetailed(
             direct.replace(/\s/g, "").length < 80 ||
             (hasImage &&
               !pageFindings.some((f) => f.field === "cpf" && !f.warning)) ||
-            textQuality(direct) < 5
+            textQuality(direct) < 5 ||
+            (hasImage &&
+              options.enhanced !== false &&
+              !pageFindings.some((f) => f.field === "name" && !f.warning))
           ) {
             const base = page.getViewport({ scale: 1 });
             const scale = Math.min(
