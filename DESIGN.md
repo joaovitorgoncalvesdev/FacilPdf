@@ -224,7 +224,7 @@ Os formulários usam duas colunas, intervalo de 18px por 15px e padding lateral 
 - Até 1190px: navegação de 195px, margens de 24px, intervalo de 16px entre painéis e formulários mais compactos.
 - Até 960px: navegação de 175px; editor e scanner passam para uma coluna.
 - Até 640px: navegação horizontal no topo, sem cabeçalho superior ou nota lateral; conteúdo com margens de 16px. O formulário mantém duas colunas. A barra de ações usa duas colunas e a ação final ocupa toda a largura. Registros do histórico permitem quebra de linha.
-- A partir de 1600px: intervalos do formulário aumentam para 22px por 17px; prévia vazia tem mínimo de 590px e PDF tem altura de 690px.
+- A partir de 1600px: intervalos do formulário aumentam para 22px por 17px; prévia vazia tem mínimo de 590px; o canvas do PDF continua proporcional à página.
 
 A prévia vazia mede no mínimo 542px no desktop, 410px até 960px e 430px até 640px. O PDF renderizado em canvas acompanha a largura disponível e a proporção da página; não usa a altura fixa do antigo leitor embutido.
 
