@@ -58,6 +58,20 @@ const titles = {
   settings: "Configuração",
 };
 export default function App() {
+  const [pdfMethod, setPdfMethod] = useState<"browser" | "word">(() => {
+    try {
+      return localStorage.getItem("facilpdf-pdf-method") === "word"
+        ? "word"
+        : "browser";
+    } catch {
+      return "browser";
+    }
+  });
+  useEffect(() => {
+    try {
+      localStorage.setItem("facilpdf-pdf-method", pdfMethod);
+    } catch {}
+  }, [pdfMethod]);
   const { dark, preference, setPreference } = useAppearance();
   const [view, setView] = useState<View>("editor");
   const [data, setData] = useState<FormData>(emptyForm);
@@ -156,9 +170,14 @@ export default function App() {
     setBusy(true);
     try {
       const docx = await generateDocx(data);
-      const blob = await convertPdf(docx);
-      setConnection("connected");
-      setConnectionError("");
+      const blob =
+        pdfMethod === "browser"
+          ? await (await import("./browserPdf")).browserPdf(docx)
+          : await convertPdf(docx);
+      if (pdfMethod === "word") {
+        setConnection("connected");
+        setConnectionError("");
+      }
       setPdf(blob);
       const changed = JSON.stringify(currentData.current) !== snapshot;
       setDirty(changed);
@@ -171,10 +190,12 @@ export default function App() {
             : "PDF pronto. Confira o documento e salve no histórico.",
         );
     } catch (e) {
-      setConnection("failed");
-      setConnectionError(
-        e instanceof Error ? e.message : "Não foi possível gerar o PDF.",
-      );
+      if (pdfMethod === "word") {
+        setConnection("failed");
+        setConnectionError(
+          e instanceof Error ? e.message : "Não foi possível gerar o PDF.",
+        );
+      }
       announce(
         e instanceof Error ? e.message : "Não foi possível gerar o PDF.",
       );
@@ -476,63 +497,105 @@ export default function App() {
                   <Scan /> Importar dados <ArrowRight />
                 </Button>
               </div>
-              <section
-                className="converter-status"
-                aria-label="Conexão com o Word local"
-              >
-                <div>
+              <div className="pdf-method">
+                <label>
+                  <strong>Como gerar o PDF?</strong>
+                  <select
+                    aria-label="Forma de gerar o PDF"
+                    value={pdfMethod}
+                    disabled={busy}
+                    onChange={(event) => {
+                      setPdfMethod(event.target.value as "browser" | "word");
+                      setDirty(true);
+                    }}
+                  >
+                    <option value="browser">
+                      PDF pelo site · sem instalação
+                    </option>
+                    <option value="word">PDF pelo Word · opcional</option>
+                  </select>
+                </label>
+                <div className="pdf-method-benefits" aria-live="polite">
                   <strong>
-                    {connection === "connected"
-                      ? "Word conectado · PDF disponível"
-                      : connection === "checking"
-                        ? "Verificando o Word…"
-                        : "Ative o Word local para gerar PDF"}
+                    {pdfMethod === "browser"
+                      ? "Mais prático para o dia a dia"
+                      : "Maior fidelidade ao modelo do Word"}
                   </strong>
                   <p>
-                    O scanner e o Word preenchido funcionam sem conexão com o
-                    conversor. Para gerar PDF com a formatação original, abra
-                    ABRIR-SITE.cmd neste computador.
+                    {pdfMethod === "browser"
+                      ? "Gere, confira e salve aqui mesmo, no computador ou celular. Sem instalar programas nem abrir um conversor. Os dados são processados no navegador."
+                      : "O próprio Word exporta o contrato, preservando suas fontes e regras de paginação. Ideal quando a aparência do modelo original é a prioridade."}
                   </p>
-                  {connectionError && <p role="alert">{connectionError}</p>}
-                </div>
-                <div className="converter-actions">
-                  <Button
-                    variant="soft"
-                    disabled={connection === "checking" || busy}
-                    onClick={() => void connectWord()}
-                  >
-                    Verificar conexão
-                  </Button>
-                  <a
-                    href={`${import.meta.env.BASE_URL}downloads/Conversor-FacilPDF.zip`}
-                    download
-                  >
-                    Baixar conversor do Word
-                  </a>
-                </div>
-                <details>
-                  <summary>Como ativar o PDF</summary>
-                  <ol>
-                    <li>
-                      Baixe o conversor, extraia a pasta e abra ABRIR-SITE.cmd
-                      no Windows com Word instalado.
-                    </li>
-                    <li>
-                      Mantenha a janela aberta durante o uso. Quando solicitado
-                      pelo navegador, permita o acesso à rede local para este
-                      site.
-                    </li>
-                    <li>
-                      Clique em Verificar conexão. Depois use Gerar prévia ou
-                      Salvar PDF e histórico.
-                    </li>
-                  </ol>
                   <p>
-                    Em celular ou computador sem Word, baixe o Word preenchido e
-                    abra-o em um computador com o conversor.
+                    {pdfMethod === "browser"
+                      ? "Usa fontes equivalentes às do modelo; as quebras de linha e de página podem variar em relação ao Word."
+                      : "Requer Windows, Microsoft Word instalado e o conversor local aberto neste computador."}
                   </p>
-                </details>
-              </section>
+                  <p>
+                    As duas opções geram PDF. Para editar o texto depois, use{" "}
+                    <strong>Baixar Word</strong>.
+                  </p>
+                </div>
+              </div>
+              {pdfMethod === "word" && (
+                <section
+                  className="converter-status"
+                  aria-label="Conexão com o Word local"
+                >
+                  <div>
+                    <strong>
+                      {connection === "connected"
+                        ? "Word conectado · PDF disponível"
+                        : connection === "checking"
+                          ? "Verificando o Word…"
+                          : "Ative o Word local para gerar PDF"}
+                    </strong>
+                    <p>
+                      O scanner e o Word preenchido funcionam sem conexão com o
+                      conversor. Para gerar PDF com a formatação original, abra
+                      ABRIR-SITE.cmd neste computador.
+                    </p>
+                    {connectionError && <p role="alert">{connectionError}</p>}
+                  </div>
+                  <div className="converter-actions">
+                    <Button
+                      variant="soft"
+                      disabled={connection === "checking" || busy}
+                      onClick={() => void connectWord()}
+                    >
+                      Verificar conexão
+                    </Button>
+                    <a
+                      href={`${import.meta.env.BASE_URL}downloads/Conversor-FacilPDF.zip`}
+                      download
+                    >
+                      Baixar conversor do Word
+                    </a>
+                  </div>
+                  <details>
+                    <summary>Como ativar o PDF</summary>
+                    <ol>
+                      <li>
+                        Baixe o conversor, extraia a pasta e abra ABRIR-SITE.cmd
+                        no Windows com Word instalado.
+                      </li>
+                      <li>
+                        Mantenha a janela aberta durante o uso. Quando
+                        solicitado pelo navegador, permita o acesso à rede local
+                        para este site.
+                      </li>
+                      <li>
+                        Clique em Verificar conexão. Depois use Gerar prévia ou
+                        Salvar PDF e histórico.
+                      </li>
+                    </ol>
+                    <p>
+                      Em celular ou computador sem Word, baixe o Word preenchido
+                      e abra-o em um computador com o conversor.
+                    </p>
+                  </details>
+                </section>
+              )}
               <div className="participant-config">
                 <div>
                   <strong>Quantas pessoas estão doando?</strong>
@@ -758,9 +821,9 @@ export default function App() {
                       <span>
                         {pdfUrl
                           ? dirty
-                            ? "Campos alterados. Gere uma nova prévia."
+                            ? "Dados ou modo alterados. Gere uma nova prévia."
                             : "Este é o PDF que será baixado."
-                          : "A formatação vem do Word original."}
+                          : "A prévia mostra o PDF que será salvo."}
                       </span>
                     </div>
                     <span className="a4">A4</span>
@@ -801,7 +864,7 @@ export default function App() {
                   </div>
                   <div className="preview-footer">
                     <ShieldCheck size={18} />
-                    <span>Estilos e margens preservados no arquivo Word.</span>
+                    <span>Confira todas as páginas antes de salvar.</span>
                     {pdfUrl && (
                       <a
                         href={pdfUrl}
@@ -1043,11 +1106,12 @@ export default function App() {
               <p>
                 A escolha fica salva neste navegador. O tema não altera o PDF.
               </p>
-              <h2>Formatação original, do Word ao PDF.</h2>
+              <h2>Seu PDF, de duas formas.</h2>
               <p>
-                O aplicativo preenche as variáveis diretamente no arquivo
-                original e envia o Word preenchido ao conversor. A prévia e o
-                download utilizam o mesmo PDF retornado.
+                PDF pelo site funciona sem instalar nada e mantém os dados neste
+                navegador. PDF pelo Word é uma alternativa opcional para
+                exportar pelo Word deste computador. A prévia, o download e o
+                histórico usam o mesmo PDF gerado.
               </p>
               <dl>
                 <dt>Modelo</dt>
@@ -1055,10 +1119,10 @@ export default function App() {
                   Instrumento particular de doação, baseado no documento
                   fornecido.
                 </dd>
-                <dt>Conversor de PDF</dt>
+                <dt>Forma de gerar PDF</dt>
                 <dd>
-                  Microsoft Word deste computador. Abra ABRIR-SITE.cmd para
-                  ativar a geração de PDF e acessar o site publicado.
+                  Escolha no formulário: PDF pelo site, sem instalação, ou PDF
+                  pelo Word, com conversor local opcional.
                 </dd>
                 <dt>Histórico</dt>
                 <dd>
@@ -1067,8 +1131,9 @@ export default function App() {
                 </dd>
                 <dt>Fonte do documento</dt>
                 <dd>
-                  Times New Roman. O conversor deve ter a fonte original
-                  instalada.
+                  No site, Tinos e Carlito são fontes incorporadas equivalentes
+                  às do modelo. Na opção Word, são utilizadas as fontes do
+                  documento original.
                 </dd>
               </dl>
               <h3>Antes de salvar</h3>

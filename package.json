@@ -20,12 +20,14 @@
     "idb": "^8.0.3",
     "mammoth": "^1.10.0",
     "pdfjs-dist": "^5.4.0",
+    "pdfmake": "^0.3.12",
     "pizzip": "^3.2.0",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "tesseract.js": "^6.0.1"
   },
   "devDependencies": {
+    "@types/pdfmake": "^0.3.3",
     "@types/react": "^19.1.0",
     "@types/react-dom": "^19.1.0",
     "@vitejs/plugin-react": "^5.0.0",

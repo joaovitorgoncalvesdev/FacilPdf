@@ -1,0 +1,4 @@
+Tinos e Carlito: Google Fonts, licenca SIL Open Font License.
+https://github.com/google/fonts/tree/main/ofl/tinos
+https://github.com/google/fonts/tree/main/ofl/carlito
+Tinos equivale em metricas a Times New Roman; Carlito equivale a Calibri. Fontes incorporadas nos PDFs gerados pelo navegador.

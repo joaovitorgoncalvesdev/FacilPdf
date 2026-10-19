@@ -53,13 +53,15 @@ Nomes e endereços maiores podem aumentar as linhas e páginas naturalmente. Pre
 
 IndexedDB guarda rascunho, campos e PDFs neste navegador e origem. Limpar os dados do site apaga esse histórico. Mudar de `localhost` para `127.0.0.1`, mudar a porta ou migrar para GitHub Pages cria outro armazenamento. Use o mesmo endereço e exporte backup para transferir os dados. Não há sincronização entre dispositivos, conforme a escolha do usuário.
 
-## GitHub Pages e PDF pelo Word local
+## GitHub Pages e duas opções de PDF
 
 Endereço do site: **https://joaovitorgoncalvesdev.github.io/FacilPdf/**.
 
-Abra **ABRIR-SITE.cmd** neste computador para iniciar o conversor e acessar o site. Mantenha a janela aberta enquanto gera PDFs. Se o navegador solicitar acesso à rede local, permita para este site. Requer Word instalado e Node.js 22 ou superior. O iniciador configura somente a origem exata do GitHub Pages; o conversor atende apenas em `127.0.0.1:8788` e não é exposto à internet.
+**PDF pelo site** é a opção padrão: geração no navegador, sem instalar programas, inclusive no celular. Usa pdfmake e fontes livres Tinos/Carlito, equivalentes às fontes do modelo. As quebras de linha e de página podem variar em relação ao Word. O conteúdo, os campos opcionais e as assinaturas vêm do mesmo DOCX preenchido. A prévia, o download e o histórico usam o mesmo PDF gerado.
 
-O scanner, os formulários e o histórico funcionam no navegador. O DOCX preenchido vai somente ao conversor local; a hospedagem não converte nem armazena os documentos. Em outro computador, a geração de PDF também exige o conversor e o Word locais. Baixar o Word preenchido funciona sem o conversor.
+**PDF pelo Word** é opcional para maior fidelidade às fontes e à paginação do modelo. Abra **ABRIR-SITE.cmd** neste computador para iniciar o conversor e acessar o site. Mantenha a janela aberta enquanto gera PDFs. Se o navegador solicitar acesso à rede local, permita para este site. Requer Word instalado e Node.js 22 ou superior. O iniciador configura somente a origem exata do GitHub Pages; o conversor atende apenas em `127.0.0.1:8788` e não é exposto à internet.
+
+O scanner, os formulários e o histórico funcionam no navegador. O DOCX preenchido vai somente ao conversor local; a hospedagem não converte nem armazena os documentos. Em outro computador, somente a opção PDF pelo Word exige o conversor e o Word locais. A opção pelo site dispensa ambos. Baixar o Word preenchido funciona sem o conversor.
 
 O código do projeto fica em repositório público; documentos pessoais, `.local`, rascunhos e históricos não são publicados. Não há uso de processamento, armazenamento ou tráfego da Vercel. O GitHub Pages possui seus próprios limites de hospedagem.
 

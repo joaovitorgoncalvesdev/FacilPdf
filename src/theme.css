@@ -170,6 +170,50 @@ a {
   gap: 12px 24px;
   font-size: 13px;
 }
+.pdf-method {
+  background: var(--ui-fff);
+  border: 1px solid var(--ui-dce3dd);
+  border-radius: 10px;
+  padding: 16px 20px;
+  margin-bottom: 20px;
+}
+.pdf-method label {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  font-size: 13px;
+}
+.pdf-method select {
+  font-size: 13px;
+}
+.pdf-method p {
+  color: var(--ui-58675f);
+  font-size: 12px;
+  line-height: 1.6;
+  margin: 10px 0 0;
+  max-width: 85ch;
+}
+.pdf-method-benefits {
+  margin-top: 14px;
+  font-size: 13px;
+}
+.pdf-method-benefits p {
+  margin-top: 5px;
+}
+@media (max-width: 640px) {
+  .pdf-method {
+    padding: 16px;
+  }
+  .pdf-method label {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .pdf-method select {
+    width: 100%;
+  }
+}
 .converter-status > div:first-child {
   flex: 1;
   min-width: 220px;
