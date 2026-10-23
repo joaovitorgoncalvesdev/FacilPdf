@@ -1,87 +1,195 @@
+/* Task-first contract editor: only the current stage is visible. */
+.simple-app .sidebar nav {
+  margin-top: 36px;
+}
+.simple-app .topbar {
+  height: 54px;
+  justify-content: flex-end;
+  border-bottom: 0;
+  background: transparent;
+}
+.simple-app .page-content {
+  max-width: 1000px;
+  padding-top: 10px;
+}
+.simple-app .page-heading {
+  margin-bottom: 24px;
+}
+.simple-app .page-heading h1 {
+  font-size: 28px;
+}
+.simple-app .editor-layout {
+  display: block;
+  max-width: 720px;
+  margin: 0 auto;
+}
+.simple-app .pane-form .preview-panel,
+.simple-app .pane-preview .form-panel {
+  display: none;
+}
+.simple-app .preview-panel {
+  position: static;
+}
+.simple-app .panel-header {
+  padding: 24px 28px 18px;
+  border-bottom: 0;
+}
+.simple-app .panel-header h2 {
+  font-size: 21px;
+  letter-spacing: -0.4px;
+}
+.step-count {
+  font-size: 13px;
+  color: var(--ui-58675f);
+  flex-shrink: 0;
+}
+.start-tools,
 .document-setup {
-  margin: 0 0 20px;
-  border: 1px solid var(--ui-dce3dd);
-  border-radius: 10px;
-  background: var(--ui-fff);
+  max-width: 720px;
+  margin: 0 auto 14px;
+}
+.start-tools .rt-Button {
+  min-height: 42px;
+}
+.document-setup {
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  margin-bottom: 18px;
 }
 .document-setup > summary {
+  font-size: 13px;
   cursor: pointer;
-  padding: 16px 20px;
-  font-size: 14px;
-  font-weight: 600;
+  padding: 8px 0;
 }
 .document-setup > summary span {
-  display: inline-block;
-  margin-left: 12px;
-  font-size: 13px;
-  font-weight: 400;
   color: var(--ui-58675f);
+  margin-left: 12px;
 }
 .setup-content {
-  padding: 0 20px 12px;
-}
-.setup-content h2 {
-  font-size: 16px;
-  margin: 10px 0;
-}
-.setup-content p {
-  font-size: 13px;
-  line-height: 1.65;
-  max-width: 75ch;
+  padding: 10px 0;
 }
 .setup-content .participant-config {
-  padding: 16px 0;
+  padding: 14px 0;
 }
 .person-navigation {
-  padding: 16px 22px;
-  display: flex;
-  flex-wrap: wrap;
-  align-items: end;
-  gap: 12px;
-  border-bottom: 1px solid var(--ui-dce3dd);
+  padding: 0 28px 18px;
+  border: 0;
+  font-size: 13px;
+}
+.person-navigation > summary {
+  cursor: pointer;
+  color: var(--ui-176348);
+  padding: 6px 0;
 }
 .person-navigation label {
-  flex: 1;
-  min-width: 0;
+  display: block;
+  margin-top: 12px;
 }
 .person-navigation label > span {
   display: block;
-  font-size: 12px;
-  color: var(--ui-58675f);
   margin-bottom: 6px;
+  color: var(--ui-58675f);
+  font-size: 12px;
 }
 .person-navigation select {
   width: 100%;
+  min-height: 44px;
   font-size: 14px;
+}
+.simple-app .form-intro {
+  margin: 0;
+  padding: 0;
+}
+.reuse-saved {
+  padding: 0 28px 16px;
+  font-size: 13px;
+}
+.reuse-saved summary {
+  cursor: pointer;
+}
+.simple-app .person-editor .form-group {
+  padding: 0;
+  margin: 0 0 22px;
+  border: 0;
+}
+.simple-app .person-editor .field-grid {
+  padding-left: 28px;
+  padding-right: 28px;
+  gap: 18px;
+}
+.simple-app .person-editor .rt-TextFieldInput,
+.simple-app .person-editor select,
+.simple-app .person-editor textarea {
+  font-size: 16px;
+}
+.simple-app .person-editor .rt-TextFieldRoot,
+.simple-app .person-editor select {
   min-height: 44px;
 }
-.person-navigation > div {
-  display: flex;
-  gap: 8px;
+.simple-app .person-editor .field-title,
+.simple-app .person-editor .form-group h4 {
+  font-size: 14px;
 }
-.person-editor .rt-TextFieldInput,
-.person-editor select,
-.person-editor textarea {
-  font-size: 15px;
+.simple-app .person-editor .form-group h4 {
+  margin-left: 28px;
+  margin-bottom: 10px;
 }
-.person-editor .rt-TextFieldRoot,
-.person-editor select {
-  min-height: 42px;
+.simple-app .signature-options {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  margin: 0 28px;
+  gap: 10px;
 }
-.person-editor .field-title {
-  font-size: 13px;
+.simple-app .signature-options > label {
+  min-height: 66px;
+  padding: 12px;
 }
-.person-editor .form-group > p,
-.person-editor .form-details > p {
-  font-size: 13px;
+.simple-app .signature-options strong {
+  font-size: 14px;
 }
-.signature-options small {
+.simple-app .signature-options .signature-mini,
+.simple-app .signature-options .fingerprint-mini {
+  flex-shrink: 0;
+}
+.simple-app .person-editor .form-details {
+  margin-left: 28px;
+  margin-right: 28px;
+  margin-top: 0;
+  margin-bottom: 0;
+  padding-top: 0;
+  padding-bottom: 0;
+}
+.simple-app .person-editor .form-details .field-grid {
+  padding-left: 0;
+  padding-right: 0;
+}
+.simple-app .form-details > summary {
+  font-size: 14px;
+  padding-top: 15px;
+  padding-bottom: 15px;
+}
+.simple-app .form-details > summary > span {
   font-size: 12px;
 }
-.signature-options strong {
-  font-size: 13px;
+.simple-app .form-footer {
+  justify-content: flex-end;
+  gap: 20px;
+  padding: 22px 28px;
 }
-.validation button {
+.simple-app .form-footer .rt-Button,
+.review-actions .rt-Button {
+  min-height: 46px;
+  font-size: 15px;
+}
+.simple-app .form-footer .text-button:disabled {
+  display: none;
+}
+.simple-app .completion-check {
+  margin: 0 28px 18px;
+}
+.validation button,
+.completion-check button {
   border: 0;
   background: transparent;
   color: inherit;
@@ -95,31 +203,59 @@
   outline: 1px solid var(--ui-873e23, #a54d32);
   outline-offset: 1px;
 }
-.undo-draft {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 12px;
-  flex-wrap: wrap;
-  padding: 14px 18px;
-  margin-top: 18px;
-  background: var(--ui-fff);
-  border: 1px solid var(--ui-dce3dd);
-  border-radius: 8px;
-  font-size: 13px;
-}
-.mobile-panel-switch {
-  display: none;
-}
 .page-heading h1:focus {
   outline: none;
 }
+.quiet-footer,
+.review-actions {
+  max-width: 720px;
+  margin: 20px auto 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+}
+.quiet-footer {
+  font-size: 12px;
+  color: var(--ui-58675f);
+  align-items: flex-start;
+  padding-bottom: 30px;
+}
+.more-actions > summary {
+  cursor: pointer;
+  padding: 6px 0;
+}
+.more-actions > div {
+  display: flex;
+  flex-direction: column;
+  align-items: end;
+  gap: 8px;
+  padding-top: 10px;
+}
+.simple-app .preview-footer {
+  justify-content: flex-end;
+}
+.simple-app .preview-footer > svg,
+.simple-app .preview-footer > span {
+  display: none;
+}
+.undo-draft {
+  display: flex;
+  max-width: 720px;
+  margin: 16px auto;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 12px 0;
+  font-size: 13px;
+}
 .scan-options-advanced {
-  margin: 18px 0;
+  margin: 16px 0;
 }
 .scan-options-advanced > summary {
   cursor: pointer;
-  font-size: 14px;
+  font-size: 13px;
   padding: 10px 0;
 }
 .review-filter {
@@ -157,95 +293,87 @@
 .no-results .text-button {
   margin-left: 10px;
 }
+.simple-app .dropzone h2 {
+  font-size: 21px;
+}
+.simple-app .scanner-workbench:has(.small-empty) {
+  display: block;
+  max-width: 720px;
+  margin: auto;
+}
+.simple-app .scanner-workbench:has(.small-empty) .scan-review-panel {
+  display: none;
+}
+.simple-app .scanner-workbench:has(.scan-person) .dropzone {
+  padding: 22px;
+}
+.simple-app .scanner-workbench:has(.scan-person) .dropzone > svg,
+.simple-app .scanner-workbench:has(.scan-person) .dropzone > p {
+  display: none;
+}
 @media (max-width: 760px) {
-  .page-heading {
+  .simple-app .sidebar nav {
+    margin-top: 16px;
+  }
+  .simple-app .page-heading h1 {
+    font-size: 24px;
+  }
+  .simple-app .page-heading {
     margin-bottom: 18px;
   }
-  .document-bar {
-    padding: 14px;
+  .simple-app .page-content {
+    padding-top: 22px;
   }
-  .document-setup > summary {
-    padding: 14px;
+  .simple-app .panel-header {
+    padding: 20px 18px 14px;
+  }
+  .simple-app .panel-header h2 {
+    font-size: 19px;
+  }
+  .person-navigation {
+    padding: 0 18px 14px;
+  }
+  .simple-app .person-editor .field-grid {
+    padding-left: 18px;
+    padding-right: 18px;
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+  .simple-app .person-editor .form-group h4 {
+    margin-left: 18px;
+  }
+  .simple-app .signature-options {
+    margin: 0 18px;
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+  .simple-app .signature-options > label {
+    min-height: 52px;
+  }
+  .simple-app .person-editor .form-details {
+    margin-left: 18px;
+    margin-right: 18px;
+  }
+  .reuse-saved {
+    padding: 0 18px 16px;
+  }
+  .simple-app .form-footer {
+    padding: 20px 18px;
+  }
+  .simple-app .rt-Button,
+  .scan-contract-count select,
+  .scan-person-header select {
+    min-height: 44px;
   }
   .document-setup > summary span {
     display: block;
     margin: 5px 0 0 18px;
   }
-  .setup-content {
-    padding: 0 14px 12px;
+  .review-actions .rt-Button {
+    min-width: 150px;
   }
-  .mobile-panel-switch {
-    display: flex;
-    position: sticky;
-    top: 0;
-    z-index: 5;
-    gap: 6px;
-    padding: 8px 0;
-    background: var(--ui-f5f7f5, var(--ui-fff));
-    margin-bottom: 12px;
-  }
-  .mobile-panel-switch button {
-    flex: 1;
-    border: 1px solid var(--ui-dce3dd);
-    border-radius: 6px;
-    background: var(--ui-fff);
-    color: var(--ui-202c28);
-    font: inherit;
-    font-size: 14px;
-    min-height: 46px;
-    cursor: pointer;
-  }
-  .mobile-panel-switch button[aria-pressed="true"] {
-    background: var(--ui-e9f3ec);
-    border-color: var(--ui-176348);
-    color: var(--ui-176348);
-    font-weight: 650;
-  }
-  .pane-form .preview-panel,
-  .pane-preview .form-panel {
-    display: none;
-  }
-  .person-navigation {
-    padding: 14px 17px;
-  }
-  .person-navigation label {
-    flex-basis: 100%;
-  }
-  .person-navigation > div {
-    width: 100%;
-  }
-  .person-navigation > div > button {
-    flex: 1;
-  }
-  .person-editor .rt-TextFieldInput,
-  .person-editor select,
-  .person-editor textarea,
-  .finding-content input {
-    font-size: 16px;
-  }
-  .person-editor .field-grid {
-    grid-template-columns: 1fr;
-  }
-  .person-editor .form-group > p,
-  .form-intro p,
-  .preview-header span {
-    font-size: 13px;
-  }
-  .rt-Button,
-  .person-editor select,
-  .person-editor .rt-TextFieldRoot,
-  .scan-contract-count select {
-    min-height: 44px;
-  }
-  .action-bar > div {
-    display: grid;
-    grid-template-columns: 1fr;
-    width: 100%;
-    gap: 10px;
-  }
-  .action-bar > div > button {
-    width: 100%;
-    font-size: 14px;
+  .quiet-footer {
+    align-items: flex-start;
   }
   .scan-contract-count {
     flex-wrap: wrap;
@@ -253,10 +381,5 @@
   .scan-contract-count > label {
     flex: 1;
     min-width: 120px;
-    font-size: 13px;
-  }
-  .scan-person-header select {
-    max-width: 100%;
-    min-height: 44px;
   }
 }

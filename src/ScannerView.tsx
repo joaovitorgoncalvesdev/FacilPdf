@@ -253,15 +253,9 @@ export default function ScannerView({
           }}
         >
           <Scan size={42} weight="thin" />
-          <h2>
-            {busy
-              ? "Conferindo seu documento…"
-              : "Frente, verso e contrato. Juntos."}
-          </h2>
+          <h2>{busy ? "Conferindo seu documento…" : "Ler documentos"}</h2>
           <p>
-            {busy
-              ? progress
-              : "Selecione várias imagens ou arquivos. Os dados ficam organizados por pessoa."}
+            {busy ? progress : "Arraste os arquivos aqui ou selecione abaixo."}
           </p>
           <div className="scan-buttons">
             <Button disabled={busy} onClick={() => upload.current?.click()}>
@@ -500,9 +494,7 @@ export default function ScannerView({
                 />
                 Mostrar apenas dados com aviso ou conflito
               </label>
-              <span>
-                Os demais campos continuam selecionados conforme sua escolha.
-              </span>
+              <span>O filtro não altera a seleção.</span>
             </div>
             {groups.map((group, index) => {
               const items = findings.filter((f) => f.group === group);

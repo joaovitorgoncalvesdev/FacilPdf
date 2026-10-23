@@ -144,11 +144,6 @@ export function PersonEditor({
   return (
     <div className="person-editor">
       <div className="form-group">
-        <h4>Identificação</h4>
-        <p>
-          Nome e CPF são obrigatórios. Os demais dados entram no contrato quando
-          preenchidos.
-        </p>
         <div className="field-grid">
           <Field
             label="Nome completo"
@@ -165,6 +160,59 @@ export function PersonEditor({
             required
             hint={cpfBad ? "CPF inválido. Confira os números." : undefined}
           />
+          <label>
+            <span className="field-title">Como aparece no contrato</span>
+            <select
+              value={person.gender}
+              onChange={(e) => set("gender", e.target.value)}
+            >
+              <option value="male">
+                {who.startsWith("recipient") ? "O donatário" : "O doador"}
+              </option>
+              <option value="female">
+                {who.startsWith("recipient") ? "A donatária" : "A doadora"}
+              </option>
+            </select>
+          </label>
+        </div>
+      </div>
+      <div className="form-group">
+        <h4>Como vai assinar?</h4>
+        <fieldset className="signature-options">
+          <legend className="sr-only">Forma de assinatura</legend>
+          <label className={person.signature === "signature" ? "chosen" : ""}>
+            <input
+              type="radio"
+              name={`${who}-signature`}
+              value="signature"
+              checked={person.signature === "signature"}
+              onChange={() => set("signature", "signature")}
+            />
+            <span>
+              <strong>Assinatura</strong>
+            </span>
+            <span className="signature-mini" aria-hidden="true" />
+          </label>
+          <label className={person.signature === "fingerprint" ? "chosen" : ""}>
+            <input
+              type="radio"
+              name={`${who}-signature`}
+              value="fingerprint"
+              checked={person.signature === "fingerprint"}
+              onChange={() => set("signature", "fingerprint")}
+            />
+            <span>
+              <strong>Impressão digital</strong>
+            </span>
+            <span className="fingerprint-mini" aria-hidden="true" />
+          </label>
+        </fieldset>
+      </div>
+      <details className="form-details">
+        <summary>
+          RG e nascimento <span>opcional</span>
+        </summary>
+        <div className="field-grid">
           <Field
             label="Data de nascimento"
             value={person.birth}
@@ -200,52 +248,8 @@ export function PersonEditor({
             onChange={(v) => set("issuerState", v)}
             options={states}
           />
-          <label>
-            <span className="field-title">Tratamento no contrato</span>
-            <select
-              value={person.gender}
-              onChange={(e) => set("gender", e.target.value)}
-            >
-              <option value="male">Masculino</option>
-              <option value="female">Feminino</option>
-            </select>
-          </label>
         </div>
-      </div>
-      <div className="form-group">
-        <h4>Como esta pessoa vai assinar?</h4>
-        <fieldset className="signature-options">
-          <legend className="sr-only">Forma de assinatura</legend>
-          <label className={person.signature === "signature" ? "chosen" : ""}>
-            <input
-              type="radio"
-              name={`${who}-signature`}
-              value="signature"
-              checked={person.signature === "signature"}
-              onChange={() => set("signature", "signature")}
-            />
-            <span>
-              <strong>Assinatura à mão</strong>
-              <small>Linha com os dados abaixo</small>
-            </span>
-            <span className="signature-mini" aria-hidden="true" />
-          </label>
-          <label className={person.signature === "fingerprint" ? "chosen" : ""}>
-            <input
-              type="radio"
-              name={`${who}-signature`}
-              value="fingerprint"
-              checked={person.signature === "fingerprint"}
-              onChange={() => set("signature", "fingerprint")}
-            />
-            <span>
-              <strong>Impressão digital</strong>
-              <small>Quadrado para carimbar o dedo</small>
-            </span>
-            <span className="fingerprint-mini" aria-hidden="true" />
-          </label>
-        </fieldset>
-      </div>
+      </details>
       <details className="form-details">
         <summary>
           Qualificação e filiação <span>opcional</span>

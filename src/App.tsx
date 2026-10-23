@@ -14,8 +14,6 @@ import {
   ShieldCheck,
   FolderOpen,
   MagnifyingGlass,
-  ArrowCounterClockwise,
-  CloudSlash,
   Moon,
   Sun,
 } from "@phosphor-icons/react";
@@ -53,7 +51,7 @@ import PdfPreview from "./PdfPreview";
 import { ValidationContext } from "./ValidationContext";
 type View = "editor" | "scanner" | "history" | "settings";
 const titles = {
-  editor: "Novo documento",
+  editor: "Contrato de doação",
   scanner: "Scanner de documentos",
   history: "Seu histórico",
   settings: "Configuração",
@@ -85,9 +83,9 @@ export default function App() {
   useEffect(() => {
     if (previousPane.current === mobilePane) return;
     previousPane.current = mobilePane;
-    if (view === "editor" && window.matchMedia("(max-width: 760px)").matches) {
+    if (view === "editor") {
       document
-        .querySelector(".mobile-panel-switch")
+        .querySelector(".editor-layout")
         ?.scrollIntoView({ block: "start" });
     }
   }, [mobilePane, view]);
@@ -338,6 +336,24 @@ export default function App() {
     ).values(),
   ];
   const issues = validate(data);
+  const currentIssues = issues.filter((issue) =>
+    currentPerson
+      ? issue.startsWith(personLabels[currentPerson] + ":")
+      : !activePeople(data).some((key) =>
+          issue.startsWith(personLabels[key] + ":"),
+        ),
+  );
+  function continueSection() {
+    if (currentIssues.length) {
+      setAttempted(true);
+      reviewIssue(currentIssues[0]);
+      return;
+    }
+    setAttempted(false);
+    setSection(
+      sections[sections.findIndex(([id]) => id === section) + 1]?.[0] || "land",
+    );
+  }
   const previousSection = useRef(section);
   useEffect(() => {
     if (previousSection.current === section) return;
@@ -380,7 +396,7 @@ export default function App() {
     });
   }
   return (
-    <div className="app-shell">
+    <div className="app-shell simple-app">
       <aside className="sidebar">
         <a
           className="brand"
@@ -411,11 +427,11 @@ export default function App() {
             {dark ? <Sun size={18} /> : <Moon size={18} />}
           </button>
         </div>
-        <div className="workspace-label">Seu espaço de documentos</div>
+
         <nav aria-label="Navegação principal">
           {(
             [
-              ["editor", FileText, "Novo documento"],
+              ["editor", FileText, "Preencher"],
               ["scanner", Scan, "Scanner"],
               ["history", ClockCounterClockwise, "Histórico"],
             ] as const
@@ -434,13 +450,6 @@ export default function App() {
           ))}
         </nav>
         <div className="sidebar-bottom">
-          <div className="local-note">
-            <ShieldCheck size={23} />
-            <div>
-              <strong>Seu arquivo, seu controle.</strong>
-              <p>Histórico salvo neste navegador.</p>
-            </div>
-          </div>
           <button
             className={`nav-item ${view === "settings" ? "active" : ""}`}
             onClick={() => setView("settings")}
@@ -452,14 +461,7 @@ export default function App() {
       </aside>
       <main>
         <header className="topbar">
-          <span>
-            Área de trabalho{" "}
-            <span className="breadcrumb">/ {titles[view]}</span>
-          </span>
           <div className="topbar-actions">
-            <span className="local-status">
-              <CloudSlash size={17} /> Armazenamento local
-            </span>
             <button
               className="theme-toggle"
               onClick={() => setPreference(dark ? "light" : "dark")}
@@ -474,15 +476,6 @@ export default function App() {
           <div className="page-heading">
             <div>
               <h1 tabIndex={-1}>{titles[view]}</h1>
-              <p>
-                {view === "editor"
-                  ? "Do preenchimento à assinatura, tudo no lugar."
-                  : view === "scanner"
-                    ? "Transforme documentos em dados, com uma revisão sua."
-                    : view === "history"
-                      ? "Documentos gerados, organizados por pessoa."
-                      : "Tudo o que precisa para testar com fidelidade."}
-              </p>
             </div>
             {view !== "editor" && (
               <Button onClick={newDocument}>
@@ -503,58 +496,29 @@ export default function App() {
           )}
           {view === "editor" && (
             <>
-              <div className="document-bar">
-                <div className="document-kind">
-                  <span className="document-icon">
-                    <FileText size={23} />
-                  </span>
-                  <div>
-                    <strong>Instrumento particular de doação</strong>
-                    <span>
-                      Modelo original · {data.donorCount}{" "}
-                      {data.donorCount === 1 ? "doador" : "doadores"} ·{" "}
-                      {data.recipientCount}{" "}
-                      {data.recipientCount === 1 ? "donatário" : "donatários"}
-                    </span>
-                  </div>
+              {mobilePane === "form" && (
+                <div className="start-tools">
+                  <Button variant="outline" onClick={() => setView("scanner")}>
+                    <Scan /> Preencher com documentos
+                  </Button>
                 </div>
-                <Button variant="soft" onClick={() => setView("scanner")}>
-                  <Scan /> Importar dados <ArrowRight />
-                </Button>
-              </div>
-              <details className="document-setup">
+              )}
+              <details
+                className="document-setup"
+                hidden={mobilePane !== "form"}
+              >
                 <summary>
-                  Participantes e formato{" "}
+                  Adicionar ou remover pessoas{" "}
                   <span>
-                    {data.donorCount}{" "}
-                    {data.donorCount === 1 ? "doador" : "doadores"} ·{" "}
                     {data.recipientCount}{" "}
-                    {data.recipientCount === 1 ? "donatário" : "donatários"} ·
-                    PDF pelo site
+                    {data.recipientCount === 1 ? "recebe" : "recebem"} ·{" "}
+                    {data.donorCount} {data.donorCount === 1 ? "doa" : "doam"}
                   </span>
                 </summary>
                 <div className="setup-content">
-                  <h2>PDF pronto ou Word editável</h2>
-                  <p>
-                    <strong>PDF pelo site:</strong> gere, confira e salve sem
-                    instalar nada, no computador ou celular. O processamento
-                    acontece no navegador.
-                  </p>
-                  <p>
-                    <strong>Word editável:</strong> baixe o contrato em DOCX
-                    para ajustar no Word ou em outro editor compatível. Não
-                    precisa conectar um conversor.
-                  </p>
-                  <p>
-                    O PDF usa fontes equivalentes às do modelo. Ao abrir o DOCX
-                    em outro editor, as quebras de linha e página podem variar.
-                  </p>
                   <div className="participant-config">
                     <div>
                       <strong>Quantas pessoas estão doando?</strong>
-                      <span>
-                        O texto e as assinaturas se ajustam à sua escolha.
-                      </span>
                     </div>
                     <select
                       aria-label="Quantidade de doadores"
@@ -575,10 +539,6 @@ export default function App() {
                   <div className="participant-config">
                     <div>
                       <strong>Quantas pessoas recebem a doação?</strong>
-                      <span>
-                        Cada donatário terá seus próprios dados e sua forma de
-                        assinar.
-                      </span>
                     </div>
                     <select
                       aria-label="Quantidade de donatários"
@@ -596,38 +556,25 @@ export default function App() {
                   </div>
                 </div>
               </details>
-              <div
-                className="mobile-panel-switch"
-                aria-label="Área do documento"
-              >
-                <button
-                  aria-pressed={mobilePane === "form"}
-                  onClick={() => setMobilePane("form")}
-                >
-                  Preencher
-                </button>
-                <button
-                  aria-pressed={mobilePane === "preview"}
-                  onClick={() => setMobilePane("preview")}
-                >
-                  Conferir PDF
-                </button>
-              </div>
               <div className={`editor-layout pane-${mobilePane}`}>
                 <section className="form-panel" aria-label="Preenchimento">
                   <div className="panel-header">
-                    <h2>Preencher documento</h2>
-                    <span className="draft-label" role="status">
-                      {draftStatus}
+                    <h2>
+                      {section.startsWith("recipient")
+                        ? "Quem recebe a doação?"
+                        : section === "land"
+                          ? "Qual é o imóvel?"
+                          : "Quem está doando?"}
+                    </h2>
+                    <span className="step-count">
+                      {sections.findIndex(([id]) => id === section) + 1} de{" "}
+                      {sections.length}
                     </span>
                   </div>
-                  <div className="person-navigation">
+                  <details className="person-navigation">
+                    <summary>Trocar pessoa ou ir ao imóvel</summary>
                     <label>
-                      <span>
-                        Pessoa ou etapa ·{" "}
-                        {sections.findIndex(([id]) => id === section) + 1} de{" "}
-                        {sections.length}
-                      </span>
+                      <span>Ir para outra pessoa ou imóvel</span>
                       <select
                         aria-label="Pessoa ou etapa"
                         value={section}
@@ -636,129 +583,65 @@ export default function App() {
                         {sections.map(([id, label]) => {
                           const person =
                             id !== "land" ? data[id as PersonKey] : undefined;
-                          const pending =
-                            id === "land"
-                              ? issues.filter(
-                                  (issue) =>
-                                    !activePeople(data).some((key) =>
-                                      issue.startsWith(personLabels[key] + ":"),
-                                    ),
-                                ).length
-                              : issues.filter((issue) =>
-                                  issue.startsWith(label + ":"),
-                                ).length;
                           return (
                             <option key={id} value={id}>
                               {person?.name ? person.name + " · " : ""}
-                              {label} ·{" "}
-                              {pending ? pending + " pendência(s)" : "Pronto"}
+                              {label}
                             </option>
                           );
                         })}
                       </select>
                     </label>
-                    <div>
-                      <Button
-                        variant="soft"
-                        disabled={section === sections[0][0]}
-                        onClick={() =>
-                          setSection(
-                            sections[
-                              sections.findIndex(([id]) => id === section) - 1
-                            ][0],
-                          )
-                        }
-                      >
-                        Anterior
-                      </Button>
-                      <Button
-                        variant="soft"
-                        disabled={section === "land"}
-                        onClick={() =>
-                          setSection(
-                            sections[
-                              sections.findIndex(([id]) => id === section) + 1
-                            ][0],
-                          )
-                        }
-                      >
-                        Próxima
-                      </Button>
-                    </div>
-                  </div>
-                  <details ref={completion} className="completion-check">
-                    <summary>
-                      {issues.length
-                        ? `${issues.length} ${issues.length === 1 ? "ajuste para concluir" : "ajustes para concluir"}`
-                        : "Tudo preenchido para gerar a prévia"}
-                    </summary>
-                    {issues.length > 0 ? (
-                      <>
-                        <p>Toque em um item para ir à seção correspondente.</p>
-                        <ul>
-                          {issues.map((issue) => (
-                            <li key={issue}>
-                              <button onClick={() => reviewIssue(issue)}>
-                                {issue}
-                                <ArrowRight size={14} />
-                              </button>
-                            </li>
-                          ))}
-                        </ul>
-                      </>
-                    ) : (
-                      <p>
-                        Confira os dados e gere a prévia para revisar o
-                        documento.
-                      </p>
-                    )}
                   </details>
+                  {attempted && currentIssues.length > 0 && (
+                    <details ref={completion} open className="completion-check">
+                      <summary>Confira antes de continuar</summary>
+                      <ul>
+                        {currentIssues.map((issue) => (
+                          <li key={issue}>
+                            <button onClick={() => reviewIssue(issue)}>
+                              {issue}
+                            </button>
+                          </li>
+                        ))}
+                      </ul>
+                    </details>
+                  )}
                   <div className="form-intro">
-                    <h3>
-                      {currentPerson
-                        ? personLabels[currentPerson]
-                        : "Imóvel e assinatura"}
-                    </h3>
-                    <p>
-                      {section.startsWith("recipient")
-                        ? data.recipientCount === 1
-                          ? "Quem recebe a doação. O arquivo será salvo com este nome."
-                          : "Quem recebe a doação. O arquivo será salvo com o nome do primeiro donatário."
-                        : section === "land"
-                          ? "Identificação da terra e da fração que será doada."
-                          : "Dados de quem transfere a propriedade."}
-                    </p>
                     {currentPerson && savedPeople.length > 0 && (
-                      <label className="reuse-person">
-                        <span>Reutilizar pessoa do histórico</span>
-                        <select
-                          value=""
-                          onChange={(event) => {
-                            const person = savedPeople.find(
-                              (item) => item.cpf === event.target.value,
-                            );
-                            if (person) {
-                              edit({
-                                ...data,
-                                [currentPerson]: {
-                                  ...person,
-                                  signature: data[currentPerson].signature,
-                                },
-                              });
-                              announce(
-                                "Cadastro recuperado. Confira os dados antes de gerar.",
+                      <details className="reuse-saved">
+                        <summary>Usar pessoa do histórico</summary>
+                        <label className="reuse-person">
+                          <span>Reutilizar pessoa do histórico</span>
+                          <select
+                            value=""
+                            onChange={(event) => {
+                              const person = savedPeople.find(
+                                (item) => item.cpf === event.target.value,
                               );
-                            }
-                          }}
-                        >
-                          <option value="">Escolha um cadastro salvo</option>
-                          {savedPeople.map((person) => (
-                            <option key={person.cpf} value={person.cpf}>
-                              {person.name} · {person.cpf}
-                            </option>
-                          ))}
-                        </select>
-                      </label>
+                              if (person) {
+                                edit({
+                                  ...data,
+                                  [currentPerson]: {
+                                    ...person,
+                                    signature: data[currentPerson].signature,
+                                  },
+                                });
+                                announce(
+                                  "Cadastro recuperado. Confira os dados antes de gerar.",
+                                );
+                              }
+                            }}
+                          >
+                            <option value="">Escolha um cadastro salvo</option>
+                            {savedPeople.map((person) => (
+                              <option key={person.cpf} value={person.cpf}>
+                                {person.name} · {person.cpf}
+                              </option>
+                            ))}
+                          </select>
+                        </label>
+                      </details>
                     )}
                   </div>
                   <ValidationContext.Provider value={attempted}>
@@ -809,36 +692,29 @@ export default function App() {
                       <PropertyEditor data={data} onChange={edit} />
                     )}
                   </ValidationContext.Provider>
-                  {attempted && issues.length > 0 && (
-                    <div className="validation" role="alert">
-                      <strong>Confira os seguintes campos</strong>
-                      <ul>
-                        {issues.map((e, i) => (
-                          <li key={i}>
-                            <button onClick={() => reviewIssue(e)}>{e}</button>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
                   <div className="form-footer">
-                    <span>* Campos obrigatórios</span>
+                    <button
+                      className="text-button"
+                      disabled={section === sections[0][0] || busy}
+                      onClick={() => {
+                        setAttempted(false);
+                        setSection(
+                          sections[
+                            sections.findIndex(([id]) => id === section) - 1
+                          ][0],
+                        );
+                      }}
+                    >
+                      Voltar
+                    </button>
                     {section !== "land" ? (
-                      <Button
-                        variant="soft"
-                        onClick={() =>
-                          setSection(
-                            sections[
-                              sections.findIndex(([key]) => key === section) + 1
-                            ]?.[0] || "land",
-                          )
-                        }
-                      >
-                        Próxima seção <ArrowRight />
+                      <Button onClick={continueSection}>
+                        Continuar <ArrowRight />
                       </Button>
                     ) : (
                       <Button disabled={busy} onClick={() => void makePDF()}>
-                        Gerar prévia <ArrowRight />
+                        {busy ? "Preparando…" : "Conferir documento"}
+                        <ArrowRight />
                       </Button>
                     )}
                   </div>
@@ -846,12 +722,12 @@ export default function App() {
                 <section className="preview-panel" aria-label="Prévia do PDF">
                   <div className="preview-header">
                     <div>
-                      <h2>Prévia do documento</h2>
+                      <h2>Confira o contrato</h2>
                       <span>
                         {pdfUrl
                           ? dirty
                             ? "Dados alterados. Gere uma nova prévia."
-                            : "Este é o PDF que será baixado."
+                            : "Revise todas as páginas antes de salvar."
                           : "A prévia mostra o PDF que será salvo."}
                       </span>
                     </div>
@@ -861,34 +737,7 @@ export default function App() {
                     {pdfUrl ? (
                       <PdfPreview blob={pdf!} />
                     ) : (
-                      <div className="preview-empty">
-                        <div className="paper-sample">
-                          <FileText size={60} weight="thin" />
-                          <div className="sample-lines">
-                            <i />
-                            <i />
-                            <i />
-                            <i />
-                            <i />
-                          </div>
-                          <span>MODELO ORIGINAL</span>
-                        </div>
-                        <h3>Seu documento começa aqui.</h3>
-                        <p>
-                          Preencha os dados e gere a prévia para conferir o PDF
-                          com a formatação do modelo.
-                        </p>
-                        <Button
-                          variant="outline"
-                          disabled={busy}
-                          onClick={() => void makePDF()}
-                        >
-                          {busy
-                            ? "Convertendo documento…"
-                            : "Gerar prévia do PDF"}
-                          <ArrowRight />
-                        </Button>
-                      </div>
+                      <p className="preview-empty">Preparando documento…</p>
                     )}
                   </div>
                   <div className="preview-footer">
@@ -925,25 +774,39 @@ export default function App() {
                   </Button>
                 </div>
               )}
-              <div className="action-bar">
-                <button className="text-button" onClick={newDocument}>
-                  <ArrowCounterClockwise size={18} /> Começar outro documento
-                </button>
-                <div>
-                  <Button variant="outline" onClick={word} disabled={busy}>
-                    <DownloadSimple /> Baixar Word
-                  </Button>
-                  <Button
-                    variant="soft"
-                    disabled={busy}
-                    onClick={() => void makePDF()}
+              {mobilePane === "preview" && (
+                <div className="review-actions">
+                  <button
+                    className="text-button"
+                    onClick={() => setMobilePane("form")}
                   >
-                    {busy ? "Gerando…" : "Atualizar prévia"}
-                  </Button>
+                    Editar dados
+                  </button>
                   <Button disabled={busy || !ready} onClick={savePDF}>
-                    <DownloadSimple /> Salvar PDF e histórico
+                    <DownloadSimple />
+                    {busy ? "Salvando…" : "Salvar PDF"}
                   </Button>
                 </div>
+              )}
+              <div className="quiet-footer">
+                <span className="draft-label" role="status">
+                  {draftStatus}
+                </span>
+                <details className="more-actions">
+                  <summary>Outras opções</summary>
+                  <div>
+                    <Button variant="ghost" onClick={word} disabled={busy}>
+                      Baixar Word editável
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      onClick={newDocument}
+                      disabled={busy}
+                    >
+                      Começar outro documento
+                    </Button>
+                  </div>
+                </details>
               </div>
             </>
           )}
@@ -1043,6 +906,7 @@ export default function App() {
                           setPdf(record.pdf);
                           setDirty(false);
                           setView("editor");
+                          setMobilePane("preview");
                           announce(
                             "Documento reaberto. Alterações serão salvas como uma nova versão.",
                           );
@@ -1234,10 +1098,6 @@ export default function App() {
               </p>
             </section>
           )}
-          <footer className="page-footer">
-            <span>FácilPDF</span>
-            <span>Menos digitação. Mais tempo para o que importa.</span>
-          </footer>
         </div>
       </main>
     </div>

@@ -7,7 +7,7 @@ Preenche o instrumento particular de doação, lê PNG/JPG/WEBP/PDF/DOCX e gera 
 ## Usar sem instalar nada
 
 1. Preencha os participantes e o imóvel ou use **Importar dados** para ler documentos.
-2. Confira os dados e a assinatura/digital de cada pessoa. Em **Participantes e formato**, escolha um ou dois doadores e de um a dez donatários.
+2. Confira os dados e a assinatura/digital de cada pessoa. Em **Adicionar ou remover pessoas**, escolha um ou dois doadores e de um a dez donatários.
 3. Gere e confira o PDF. **Salvar PDF e histórico** gera quando necessário, baixa com o nome do primeiro donatário e guarda uma cópia no navegador.
 4. Para editar em outro programa, use **Baixar Word**. O DOCX abre no Word ou editor compatível.
 
@@ -17,10 +17,10 @@ Não é necessário instalar Node.js, Word ou conversor para usar o site. Por es
 
 - Nome e CPF por pessoa, matrícula opcional, demais informações incluídas conforme preenchidas.
 - Estado e município associados, cópia de endereço e recuperação de pessoas do histórico.
-- Seletor por nome/papel com pendências, anterior/próxima e atalhos de data e cidade.
+- Uma pessoa por vez, com Continuar; salto por nome/papel recolhido e atalhos de data/cidade.
 - Erros junto dos campos; gerar com pendências leva ao primeiro ajuste. Comparação de áreas só aparece depois de informar ambas.
 - Status real de salvamento do rascunho. **Desfazer novo documento** recupera a última versão anterior durante a sessão; não é uma lixeira permanente.
-- No celular, alternância **Preencher / Conferir PDF**, campos em uma coluna e controles maiores.
+- Em computador e celular, preenchimento e revisão aparecem separadamente: Continuar → Conferir documento → Salvar PDF. Word editável em Outras opções.
 - Histórico com busca, limpar busca, reabrir, duplicar, baixar, excluir e backup ZIP.
 - Claro, escuro ou conforme o dispositivo; o documento mantém papel branco.
 
