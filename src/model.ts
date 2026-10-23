@@ -341,7 +341,11 @@ export function validate(data: FormData) {
     errors.push("Cidade da assinatura não pertence à UF selecionada");
   const total = Number(data.totalArea.replace(",", ".")),
     part = Number(data.donatedArea.replace(",", "."));
-  if (!(total > 0 && part > 0 && part <= total))
+  if (
+    data.totalArea.trim() &&
+    data.donatedArea.trim() &&
+    !(total > 0 && part > 0 && part <= total)
+  )
     errors.push(
       "A área doada precisa ser maior que zero e não pode superar a área total.",
     );

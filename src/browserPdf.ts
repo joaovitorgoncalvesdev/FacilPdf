@@ -170,7 +170,7 @@ export function definitionFromXml(
     );
     if (contents.some((row) => row.length !== 1))
       throw Error(
-        "A estrutura do modelo mudou. Use a opção PDF pelo Word para este documento.",
+        "A estrutura do modelo mudou. Baixe o Word editável e abra em um editor compatível para exportar este documento.",
       );
     return {
       table: { widths: [tableWidth], body: contents, dontBreakRows: true },

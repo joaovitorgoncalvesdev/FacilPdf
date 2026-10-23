@@ -82,6 +82,12 @@ typography:
     fontWeight: 550
   input:
     fontFamily: '"DM Sans Variable", "Segoe UI", sans-serif'
+    fontSize: "15px"
+  input-mobile:
+    fontFamily: '"DM Sans Variable", "Segoe UI", sans-serif'
+    fontSize: "16px"
+  person-label:
+    fontFamily: '"DM Sans Variable", "Segoe UI", sans-serif'
     fontSize: "13px"
   button:
     fontFamily: '"DM Sans Variable", "Segoe UI", sans-serif'
@@ -129,7 +135,7 @@ components:
   field:
     backgroundColor: "{colors.surface}"
     typography: "{typography.input}"
-    height: "38px"
+    height: "42px"
     padding: "0 10px"
   navigation:
     textColor: "{colors.muted}"
@@ -175,9 +181,9 @@ components:
 
 **Creative North Star: "Operate — mesa de edição documental"**
 
-Um espaço de trabalho com verde documental, superfícies claras ou escuras e papel branco. A hierarquia acompanha a tarefa: preencher, conferir o documento e salvar. Formulário e PDF dividem o espaço disponível; scanner e histórico usam vistas próprias.
+Um espaço de trabalho com verde documental, superfícies claras ou escuras e papel branco. A hierarquia acompanha a tarefa: preencher, conferir o documento e salvar. Formulário e PDF dividem o espaço disponível no desktop; no celular, Preencher e Conferir PDF alternam o painel visível. Scanner e histórico usam vistas próprias.
 
-Este documento atualiza a direção provisória com os valores implementados em `src/styles.css`, `src/form-v2.css`, `src/App.tsx`, `src/ContractForm.tsx`, `src/ScannerView.tsx`, `src/theme.css`, `src/Appearance.tsx`, `src/LocationFields.tsx` e no tema Radix compartilhado. A interface foi desenvolvida em código para teste local; não representa aprovação de uma composição visual pelo usuário. O modo escuro e a preferência persistente foram solicitados pelo usuário como extensão da identidade existente. Direção inicial: variância 3/10, movimento 2/10 e densidade 5/10.
+Este documento atualiza a direção provisória com os valores implementados em `src/styles.css`, `src/form-v2.css`, `src/workflow.css`, `src/App.tsx`, `src/ContractForm.tsx`, `src/ScannerView.tsx`, `src/theme.css`, `src/Appearance.tsx`, `src/LocationFields.tsx` e no tema Radix compartilhado. A interface foi desenvolvida em código para teste local; não representa aprovação de uma composição visual pelo usuário. O modo escuro e a preferência persistente foram solicitados pelo usuário como extensão da identidade existente. Direção inicial: variância 3/10, movimento 2/10 e densidade 5/10.
 
 **Key Characteristics:**
 
@@ -209,11 +215,11 @@ No escuro, `dark-primary` serve a texto e ícones; os botões sólidos usam `dar
 
 ## Typography
 
-DM Sans Variable, com Segoe UI e sans-serif como alternativas, é a família da interface. O título principal usa `headline`; títulos de painel usam `title`. Textos explicativos ficam entre 12 e 14px, campos em 13px e rótulos em 12px. Metadados secundários usam 10–11px. A marca usa 26px, peso 750 e espaçamento de -1px; sua parte leve usa peso 400.
+DM Sans Variable, com Segoe UI e sans-serif como alternativas, é a família da interface. O título principal usa `headline`; títulos de painel usam `title`. Textos explicativos ficam entre 12 e 14px. No editor de pessoas, campos usam 15px, rótulos 13px e explicações de grupo 13px; os demais controles compactos preservam sua escala local de 12–13px. Metadados secundários usam 10–11px. A marca usa 26px, peso 750 e espaçamento de -1px; sua parte leve usa peso 400.
 
-No celular, o título principal passa a 25px. Títulos do scanner e estados vazios variam entre 19 e 23px conforme a vista. Não há fonte de exibição separada nem hierarquia editorial de marketing.
+Até 760px, os campos de pessoa e valores do scanner usam 16px; os controles principais do preenchimento têm altura mínima de 44px. No celular, o título principal passa a 25px. Títulos do scanner e estados vazios variam entre 19 e 23px conforme a vista. Não há fonte de exibição separada nem hierarquia editorial de marketing.
 
-A fonte do documento Word é Times New Roman; ela pertence ao modelo e ao conversor, não ao tema da interface. A prévia exibe o PDF produzido pelo conversor.
+A fonte do documento Word é Times New Roman e pertence ao modelo, não ao tema da interface. O PDF gerado no navegador usa fontes livres equivalentes, com Tinos como padrão. A prévia e o download usam esse mesmo PDF; a paginação do DOCX pode variar entre editores.
 
 ## Layout
 
@@ -223,12 +229,13 @@ Os formulários usam duas colunas, intervalo de 18px por 15px e padding lateral 
 
 - Até 1190px: navegação de 195px, margens de 24px, intervalo de 16px entre painéis e formulários mais compactos.
 - Até 960px: navegação de 175px; editor e scanner passam para uma coluna.
-- Até 640px: navegação horizontal no topo, sem cabeçalho superior ou nota lateral; conteúdo com margens de 16px. O formulário mantém duas colunas. A barra de ações usa duas colunas e a ação final ocupa toda a largura. Registros do histórico permitem quebra de linha.
+- Até 760px: alternador Preencher/Conferir PDF preso ao topo, com botões de altura mínima de 46px; somente o painel escolhido aparece. Campos da pessoa e ações finais passam a uma coluna. O seletor de pessoa ocupa uma linha inteira, seguido de Anterior/Próxima com larguras iguais.
+- Até 640px: navegação horizontal no topo, sem cabeçalho superior ou nota lateral; conteúdo com margens de 16px. Registros do histórico permitem quebra de linha.
 - A partir de 1600px: intervalos do formulário aumentam para 22px por 17px; prévia vazia tem mínimo de 590px; o canvas do PDF continua proporcional à página.
 
 A prévia vazia mede no mínimo 542px no desktop, 410px até 960px e 430px até 640px. O PDF renderizado em canvas acompanha a largura disponível e a proporção da página; não usa a altura fixa do antigo leitor embutido.
 
-Os grupos de pessoa usam intervalo de 16px entre campos e padding lateral de 23px, reduzido para 17px até 1190px. Nesse ponto o scanner usa colunas de no mínimo 270px e 310px e intervalo de 16px. Até 960px, o scanner empilha seus painéis e organiza as opções de leitura em duas colunas; até 640px, essas opções passam a uma coluna e os rótulos dos resultados permitem quebra. A prévia do editor fica presa a 16px do topo no desktop e volta ao fluxo até 960px. A ação inferior de importação permanece no fluxo do painel.
+Os grupos de pessoa usam intervalo de 16px entre campos e padding lateral de 23px, reduzido para 17px até 1190px. Nesse ponto o scanner usa colunas de no mínimo 270px e 310px e intervalo de 16px. Até 960px, o scanner empilha seus painéis e organiza as opções de leitura em duas colunas; até 640px, essas opções passam a uma coluna e os rótulos dos resultados permitem quebra. A prévia do editor fica presa a 16px do topo no desktop e volta ao fluxo até 960px. A ação inferior de importação fica presa à base da área visível, com divisor superior e padding vertical de 14px.
 
 ## Elevation & Depth
 
@@ -240,17 +247,17 @@ Painéis usam 10px; navegação e mensagens, 7px; ícones documentais e validaç
 
 ## Components
 
-Botões Radix usam variantes solid, outline, soft e ghost. Solid aplica o verde principal e texto branco; o peso é 550. Ações de exclusão usam a variante vermelha do Radix. Estados desabilitados impedem a ação e usam cursor de indisponibilidade. O texto informa geração, conversão ou leitura em andamento.
+Botões Radix usam variantes solid, outline, soft e ghost. Solid aplica o verde principal e texto branco; o peso é 550. Ações de exclusão usam a variante vermelha do Radix. Estados desabilitados impedem a ação e usam cursor de indisponibilidade. O texto informa geração ou leitura em andamento.
 
-Campos têm rótulos persistentes, indicação de obrigatoriedade ou opcionalidade e altura de 38px no editor. Abas de seção marcam a seleção com linha inferior verde de 2px e peso 650. Navegação selecionada combina fundo verde claro, texto verde e estado ativo. A etiqueta A4 é compacta e contornada.
+Campos têm rótulos persistentes e indicação de obrigatoriedade ou opcionalidade. No editor de pessoas a altura mínima é 42px, passando a 44px até 760px. A pessoa ou etapa é escolhida em select nativo rotulado, com nome e quantidade de pendências ou estado Pronto, acompanhado de Anterior/Próxima, desabilitados nos limites. Navegação selecionada combina fundo verde claro, texto verde e estado ativo. A etiqueta A4 é compacta e contornada.
 
 O scanner usa borda tracejada de 1.5px e área branca. Durante a leitura muda para `dropzone-busy`, apresenta progresso e desabilita a seleção. Os dados extraídos podem ser editados e selecionados antes de aplicar. O histórico mantém pesquisa, reabertura, download e exclusão com confirmação na própria linha.
 
 ### Configuração e campos do contrato
 
-A escolha de um ou dois doadores usa um select nativo junto de título e instrução, separado do formulário por divisor. UF, estado civil e tratamento também usam selects nativos, com a mesma altura dos campos, borda `input-border`, raio `native-control` e foco de 2px em `focus`, afastado 1px. Os rótulos continuam visíveis; o asterisco verde sinaliza obrigatoriedade.
+A configuração inicial usa details/summary fechado por padrão, com resumo dos participantes e da geração no navegador. A escolha de um ou dois doadores usa um select nativo junto de título e instrução, separado do formulário por divisor. UF, estado civil e tratamento também usam selects nativos, com a mesma altura dos campos, borda `input-border`, raio `native-control` e foco de 2px em `focus`, afastado 1px. Os rótulos continuam visíveis; o asterisco verde sinaliza obrigatoriedade.
 
-A quantidade de donatários usa o mesmo padrão de título, instrução e select nativo, de um a dez. Cada pessoa tem sua própria seção; a faixa de abas permite rolagem horizontal, mantém os rótulos em uma linha e largura mínima de 93px por aba. A matrícula usa o campo comum com indicação de opcionalidade, sem asterisco obrigatório.
+A quantidade de donatários usa o mesmo padrão de título, instrução e select nativo, de um a dez. Cada pessoa tem sua própria seção, acessível pelo seletor nomeado de pessoa ou etapa e pelos controles Anterior/Próxima. A matrícula usa o campo comum com indicação de opcionalidade, sem asterisco obrigatório.
 
 Qualificação e filiação, endereço e registros adicionais usam grupos nativos `details/summary`, fechados inicialmente, com divisor superior e indicação discreta de “opcional”. O resumo aberto se afasta 20px dos campos. Endereços permanecem separados por pessoa; copiar o endereço do doador 1 é uma ação explícita.
 
@@ -270,17 +277,17 @@ Cada pessoa tem duas linhas de rádio em um `fieldset` com legenda acessível. A
 
 A área de upload permite selecionar e adicionar arquivos, cancelar a leitura e refazê-la. As opções combinam caixas de seleção para leitura aprofundada e união de frente/verso, além de select de orientação. Progresso e avisos aparecem junto dos arquivos; uma seção expansível permite conferir a imagem e a orientação. O texto extraído tem revisão por arquivo e ação explícita para reanálise.
 
-O painel de revisão acompanha a superfície do modo escolhido, com os mesmos contornos e raio de painel, padding de 23px, reduzido para 18px até 1190px e 17px no celular. O topo permite escolher um ou dois doadores e de um a dez donatários; os controles permitem quebra de linha. O resumo de pessoas identificadas e CPFs válidos é um estado textual em verde, 12px, entrelinha 1.6 e margem inferior de 18px, orientando conferir o destino. Cada pessoa tem título, instrução e select de destino entre as pessoas ativas; os dados do imóvel formam grupo próprio. Cada informação combina caixa de seleção, select do campo, valor editável, aviso quando necessário e origem expansível. “CPF válido” combina ícone e texto em verde; avisos de CPF e data usam `review-warning` e texto explícito para correção antes de aplicar. Valores já preenchidos são mostrados em texto secundário, com indicação de que serão mantidos quando a substituição estiver desmarcada. A substituição é uma escolha explícita junto da ação final, que informa a quantidade de campos selecionados.
+O painel de revisão acompanha a superfície do modo escolhido, com os mesmos contornos e raio de painel, padding de 23px, reduzido para 18px até 1190px e 17px no celular. O topo permite escolher um ou dois doadores e de um a dez donatários; os controles permitem quebra de linha. O resumo de pessoas identificadas e CPFs válidos é um estado textual em verde, 12px, entrelinha 1.6 e margem inferior de 18px, orientando conferir o destino. Cada pessoa tem título, instrução e select de destino entre as pessoas ativas; os dados do imóvel formam grupo próprio. Cada informação combina caixa de seleção, select do campo, valor editável, aviso quando necessário e origem expansível. “CPF válido” combina ícone e texto em verde; avisos de CPF e data usam `review-warning` e texto explícito para correção antes de aplicar. Valores já preenchidos são mostrados em texto secundário, com indicação de que serão mantidos quando a substituição estiver desmarcada. Um filtro mostra apenas avisos ou conflitos sem mudar a seleção dos demais dados. Cada grupo mostra a quantidade de campos selecionados e permite selecionar ou desmarcar o grupo. A substituição é uma escolha explícita junto da ação final, que informa a quantidade de campos selecionados. As opções avançadas de leitura ficam em details/summary fechado por padrão.
 
-### Conexão local e prévia paginada
+### Exportação e prévia paginada
 
-O painel de conexão com o Word usa a superfície e borda de painel, raio de 10px, padding de 18px por 20px e intervalo de 12px por 24px. O título textual distingue conexão disponível, verificação e ativação necessária. Instruções e link de download do conversor usam 12px; erros usam `review-warning` com alerta textual. “Verificar conexão” é uma ação suave explícita, indisponível durante a verificação. O grupo de ações é vertical; o `details/summary` de ativação ocupa toda a largura. Até 640px, o padding passa a 16px e o grupo de ações ocupa a largura disponível.
+As ações oferecem Word editável e PDF pelo site, conforme escolha explícita do usuário em 23/10/2026. A interface não apresenta painel de conexão ou download de conversor. As instruções de configuração explicam as fontes equivalentes e a possível variação de paginação entre editores.
 
 A prévia usa PDF.js em canvas branco, inclusive no modo escuro. A navegação fica centralizada acima da página, com intervalo de 15px, margem inferior de 16px e contador “Página X de Y” em 12px anunciado como atualização discreta. Botões suaves têm nomes acessíveis e ficam desabilitados nos limites. O canvas é centralizado, tem largura máxima de 100% e altura proporcional. Carregamento aparece como estado textual; falhas aparecem como alerta que orienta abrir ou baixar o PDF original. Esses padrões reutilizam os tokens existentes, sem nova paleta ou elevação.
 
 O foco global usa contorno de 3px em `focus`, afastado 3px. Mudanças de fundo e texto duram 160ms com `ease-out`; mensagens entram em 180ms com deslocamento de 3px. Esses movimentos só são aplicados em `prefers-reduced-motion: no-preference`.
 
-A prévia é gerada por uma ação explícita. O rascunho dos campos é salvo após 500ms sem alterações; esse salvamento não gera o PDF. Alterações pendentes impedem salvar um PDF desatualizado. Mensagens e estados vazios devem indicar a próxima ação disponível.
+A prévia é gerada por uma ação explícita. O rascunho dos campos é salvo após 500ms sem alterações; esse salvamento não gera o PDF. Alterações pendentes impedem salvar um PDF desatualizado. O estado do rascunho distingue alterações pendentes, salvamento e falha. Mensagens e estados vazios devem indicar a próxima ação disponível. Iniciar novo documento oferece Desfazer em uma faixa de estado durante a sessão. Ao tentar gerar com pendências, a interface mostra erros junto dos campos e leva o foco à primeira pendência; aria-invalid e aria-describedby associam o erro ao controle.
 
 ## Do's and Don'ts
 
@@ -289,7 +296,7 @@ A prévia é gerada por uma ação explícita. O rascunho dos campos é salvo ap
 - Reutilizar verde, superfícies do modo escolhido, bordas e hierarquia compacta.
 - Preservar rótulos, foco visível e mensagens de progresso.
 - Adaptar painéis e ações nos pontos de quebra documentados.
-- Manter a aparência do documento no modelo Word e no PDF convertido.
+- Preservar o modelo no Word editável e conferir o PDF gerado no navegador com fontes equivalentes.
 - Usar texto opaco no acento do modo para ações suaves e rótulos persistentes no preenchimento assistido.
 
 ### Don't

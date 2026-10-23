@@ -60,6 +60,7 @@ export default function ScannerView({
     controller = useRef<AbortController | null>(null),
     lastFiles = useRef<File[]>([]);
   const [sourcePreview, setSourcePreview] = useState("");
+  const [reviewOnly, setReviewOnly] = useState(false);
   useEffect(() => () => controller.current?.abort(), []);
   useEffect(
     () => () => {
@@ -288,38 +289,41 @@ export default function ScannerView({
             PNG, JPG, WEBP, PDF e DOCX · Até 10 arquivos · 20 MB por arquivo
           </small>
         </div>
-        <div className="scan-options">
-          <label>
-            <Checkbox
-              checked={enhanced}
-              onCheckedChange={(v) => setEnhanced(v === true)}
-              disabled={busy}
-            />{" "}
-            Leitura aprofundada{" "}
-            <small>Mais tentativas para documentos difíceis</small>
-          </label>
-          <label>
-            <Checkbox
-              checked={samePerson}
-              onCheckedChange={(v) => setSamePerson(v === true)}
-              disabled={busy}
-            />{" "}
-            Juntar frente e verso da mesma pessoa
-          </label>
-          <label>
-            Orientação da imagem
-            <select
-              value={rotation}
-              disabled={busy}
-              onChange={(e) => setRotation(e.target.value)}
-            >
-              <option value="0">Original</option>
-              <option value="90">Girar 90°</option>
-              <option value="180">Girar 180°</option>
-              <option value="270">Girar 270°</option>
-            </select>
-          </label>
-        </div>
+        <details className="scan-options-advanced">
+          <summary>Ajustes de leitura e orientação</summary>
+          <div className="scan-options">
+            <label>
+              <Checkbox
+                checked={enhanced}
+                onCheckedChange={(v) => setEnhanced(v === true)}
+                disabled={busy}
+              />{" "}
+              Leitura aprofundada{" "}
+              <small>Mais tentativas para documentos difíceis</small>
+            </label>
+            <label>
+              <Checkbox
+                checked={samePerson}
+                onCheckedChange={(v) => setSamePerson(v === true)}
+                disabled={busy}
+              />{" "}
+              Juntar frente e verso da mesma pessoa
+            </label>
+            <label>
+              Orientação da imagem
+              <select
+                value={rotation}
+                disabled={busy}
+                onChange={(e) => setRotation(e.target.value)}
+              >
+                <option value="0">Original</option>
+                <option value="90">Girar 90°</option>
+                <option value="180">Girar 180°</option>
+                <option value="270">Girar 270°</option>
+              </select>
+            </label>
+          </div>
+        </details>
         {sourcePreview && (
           <details className="scan-image-preview">
             <summary>Conferir imagem e orientação</summary>
@@ -445,7 +449,7 @@ export default function ScannerView({
               disabled={busy || !selected}
               onClick={applyResults}
             >
-              <CheckCircle /> Preencher contrato
+              <CheckCircle /> Aplicar selecionados
             </Button>
           )}
         </div>
@@ -488,6 +492,18 @@ export default function ScannerView({
           </div>
         ) : (
           <>
+            <div className="review-filter">
+              <label>
+                <Checkbox
+                  checked={reviewOnly}
+                  onCheckedChange={(value) => setReviewOnly(value === true)}
+                />
+                Mostrar apenas dados com aviso ou conflito
+              </label>
+              <span>
+                Os demais campos continuam selecionados conforme sua escolha.
+              </span>
+            </div>
             {groups.map((group, index) => {
               const items = findings.filter((f) => f.group === group);
               const name =
@@ -531,6 +547,31 @@ export default function ScannerView({
                       </label>
                     )}
                   </div>
+                  <div className="group-selection">
+                    <span>
+                      {items.filter((item) => item.selected).length} de{" "}
+                      {items.length} campos selecionados
+                    </span>
+                    <Button
+                      variant="ghost"
+                      size="1"
+                      disabled={busy}
+                      onClick={() => {
+                        const select = !items.every((item) => item.selected);
+                        setFindings((old) =>
+                          old.map((item) =>
+                            item.group === group
+                              ? { ...item, selected: select }
+                              : item,
+                          ),
+                        );
+                      }}
+                    >
+                      {items.every((item) => item.selected)
+                        ? "Desmarcar pessoa"
+                        : "Selecionar pessoa"}
+                    </Button>
+                  </div>
                   <div className="finding-list">
                     {items.map((item) => {
                       const existing = property
@@ -544,6 +585,12 @@ export default function ScannerView({
                               item.field as keyof typeof data.recipient
                             ] || "",
                           );
+                      if (
+                        reviewOnly &&
+                        !item.warning &&
+                        !(existing && existing !== item.value)
+                      )
+                        return null;
                       return (
                         <div
                           className={`finding-row ${item.warning ? "needs-review" : ""}`}
@@ -671,7 +718,7 @@ export default function ScannerView({
                 selecionados.
               </p>
               <Button disabled={busy || !selected} onClick={applyResults}>
-                <CheckCircle /> Preencher {selected} campo
+                <CheckCircle /> Aplicar {selected} campo
                 {selected === 1 ? "" : "s"} no contrato
               </Button>
             </div>

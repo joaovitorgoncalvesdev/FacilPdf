@@ -1,4 +1,5 @@
-import { useId } from "react";
+import { useContext, useId } from "react";
+import { ValidationContext } from "./ValidationContext";
 import { TextField } from "@radix-ui/themes";
 import { citiesFor, stateNames, canonicalCity } from "./locations";
 export default function LocationFields({
@@ -17,6 +18,11 @@ export default function LocationFields({
   required?: boolean;
 }) {
   const id = useId();
+  const attempted = useContext(ValidationContext);
+  const stateError = attempted && required && !state;
+  const cityError =
+    (attempted && required && !city) ||
+    !!(state && city && !canonicalCity(city, state));
   const cities = citiesFor(state);
   return (
     <>
@@ -26,6 +32,9 @@ export default function LocationFields({
           {required ? " *" : ""}
         </span>
         <select
+          aria-required={required}
+          aria-invalid={!!stateError}
+          aria-describedby={stateError ? `${id}-state-error` : undefined}
           value={state}
           onChange={(e) => {
             const uf = e.target.value;
@@ -41,6 +50,11 @@ export default function LocationFields({
               </option>
             ))}
         </select>
+        {stateError && (
+          <small id={`${id}-state-error`} className="review-warning">
+            Escolha o estado.
+          </small>
+        )}
       </label>
       <label>
         <span className="field-title">
@@ -48,6 +62,9 @@ export default function LocationFields({
           {required ? " *" : ""}
         </span>
         <TextField.Root
+          aria-required={required}
+          aria-invalid={!!cityError}
+          aria-describedby={cityError ? `${id}-city-error` : undefined}
           value={city}
           list={id}
           disabled={!state}
@@ -68,9 +85,11 @@ export default function LocationFields({
             <option key={name} value={name} />
           ))}
         </datalist>
-        {state && city && !canonicalCity(city, state) && (
-          <small className="review-warning">
-            Escolha um município de {stateNames[state]} na lista.
+        {cityError && (
+          <small id={`${id}-city-error`} className="review-warning">
+            {city
+              ? `Escolha um município de ${stateNames[state]} na lista.`
+              : "Informe a cidade após escolher o estado."}
           </small>
         )}
       </label>

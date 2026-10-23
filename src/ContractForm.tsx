@@ -1,9 +1,11 @@
 import LocationFields from "./LocationFields";
-import { useId } from "react";
+import { useContext, useId } from "react";
+import { ValidationContext } from "./ValidationContext";
 import { TextField, Button } from "@radix-ui/themes";
 import {
   formatCPF,
   validCPF,
+  validDate,
   states,
   type Person,
   type FormData,
@@ -34,6 +36,23 @@ export function Field({
   hint,
 }: FieldProps) {
   const id = useId();
+  const attempted = useContext(ValidationContext);
+  const error =
+    attempted && required && !value.trim()
+      ? "Preencha este campo."
+      : label === "CPF" && value && !validCPF(value)
+        ? "CPF inválido. Confira os números."
+        : type === "date" &&
+            value &&
+            (!validDate(value) ||
+              (label === "Data de nascimento" &&
+                value > new Date().toLocaleDateString("sv-SE")))
+          ? "Confira a data informada."
+          : label.includes("hectares") &&
+              value &&
+              !(Number(value.replace(",", ".")) > 0)
+            ? "Informe uma área maior que zero."
+            : undefined;
   return (
     <label className={wide ? "wide" : ""}>
       <span className="field-title">
@@ -41,7 +60,13 @@ export function Field({
         {required && <span aria-label="obrigatório"> *</span>}
       </span>
       {options ? (
-        <select value={value} onChange={(e) => onChange(e.target.value)}>
+        <select
+          aria-required={required}
+          aria-invalid={!!error}
+          aria-describedby={error ? `${id}-error` : undefined}
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+        >
           <option value="">Selecione</option>
           {options.map((x) => (
             <option key={x}>{x}</option>
@@ -50,6 +75,9 @@ export function Field({
       ) : (
         <TextField.Root
           type={type}
+          aria-required={required}
+          aria-invalid={!!error}
+          aria-describedby={error ? `${id}-error` : undefined}
           value={value}
           placeholder={placeholder}
           maxLength={label === "CPF" ? 14 : 300}
@@ -72,7 +100,13 @@ export function Field({
           ))}
         </datalist>
       )}
-      {hint && <small>{hint}</small>}
+      {error ? (
+        <small id={`${id}-error`} className="review-warning">
+          {error}
+        </small>
+      ) : (
+        hint && <small>{hint}</small>
+      )}
     </label>
   );
 }

@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-10-19T16:55:27.8512632Z",
+  "generatedAt": "2026-10-23T23:30:15.2989017Z",
   "title": "Design System: FácilPDF",
   "extensions": {
     "direction": {
@@ -8,7 +8,7 @@
       "motion": 2,
       "variance": 3,
       "density": 5,
-      "approvedExtension": "Modo escuro e preferência persistente solicitados pelo usuário; identidade Operate existente preservada."
+      "approvedExtension": "Modo escuro e preferência persistente; em 23/10/2026, Word editável + PDF no navegador e preenchimento prático como extensão da identidade Operate existente."
     },
     "shadows": [
       {
@@ -34,7 +34,9 @@
       "src/Appearance.tsx",
       "src/LocationFields.tsx",
       "@radix-ui/themes dark green/sage medium",
-      "src/PdfPreview.tsx"
+      "src/PdfPreview.tsx",
+      "src/workflow.css",
+      "src/browserPdf.ts"
     ],
     "motion": [
       {
@@ -56,6 +58,10 @@
       "body": {
         "displayName": "Texto de apoio",
         "purpose": "Instruções e explicações."
+      },
+      "input": {
+        "displayName": "Campo de pessoa",
+        "purpose": "15px no desktop, 16px até 760px; rótulo persistente de 13px."
       }
     },
     "breakpoints": [
@@ -74,6 +80,10 @@
       {
         "value": "1600px",
         "name": "wide-min"
+      },
+      {
+        "name": "workflow-mobile-max",
+        "value": "760px"
       }
     ],
     "colorMeta": {
@@ -1063,12 +1073,12 @@
       "css": ".ds-ghost{font-family:\"DM Sans Variable\",\"Segoe UI\",sans-serif;display:inline-flex;align-items:center;justify-content:center;gap:8px;border:0;border-radius:4px;height:32px;padding:0 12px;font-size:14px;font-weight:550;line-height:20px;cursor:pointer; height:auto;padding:4px 8px;background:transparent;color:var(--green-a11,#00713fde)}.ds-ghost:hover{background:var(--green-a3,#00a43319)}.ds-ghost:active{background:var(--green-a4,#00a83829)}.ds-ghost:focus-visible{outline:3px solid var(--ui-35865f,#35865f);outline-offset:3px}"
     },
     {
-      "css": ".ds-label{font-family:\"DM Sans Variable\",\"Segoe UI\",sans-serif; display:flex;flex-direction:column;gap:7px;font-size:12px;font-weight:550;color:var(--ui-202c28,#202c28)}.ds-input{font-family:\"DM Sans Variable\",\"Segoe UI\",sans-serif; height:38px;padding:0 10px;border:0;border-radius:4px;font-size:13px;background:var(--ui-fff,#fff);color:var(--ui-202c28,#202c28);box-shadow:inset 0 0 0 1px var(--ui-d6dfd7,#d6dfd7)}.ds-input:focus{box-shadow:inset 0 0 0 2px var(--green-8,#5bb98b)}.ds-input:focus-visible{outline:3px solid var(--ui-35865f,#35865f);outline-offset:3px}",
+      "css": ".ds-label{font-family:\"DM Sans Variable\",\"Segoe UI\",sans-serif; display:flex;flex-direction:column;gap:7px;font-size:13px;font-weight:550;color:var(--ui-202c28,#202c28)}.ds-input{font-family:\"DM Sans Variable\",\"Segoe UI\",sans-serif; min-height:42px;padding:0 10px;border:0;border-radius:4px;font-size:15px;background:var(--ui-fff,#fff);color:var(--ui-202c28,#202c28);box-shadow:inset 0 0 0 1px var(--ui-d6dfd7,#d6dfd7)}.ds-input:focus{box-shadow:inset 0 0 0 2px var(--green-8,#5bb98b)}.ds-input:focus-visible{outline:3px solid var(--ui-35865f,#35865f);outline-offset:3px} .ds-input[aria-invalid=true]{outline:1px solid var(--ui-873e23,#873e23);outline-offset:1px}@media(max-width:760px){.ds-input{font-size:16px;min-height:44px}}",
       "kind": "input",
       "html": "<label class=\"ds-label\">Nome completo<input class=\"ds-input\" placeholder=\"Informe o nome\"></label>",
       "name": "Campo do editor",
       "refersTo": "field",
-      "description": "Rótulo persistente e contorno interno de 1px."
+      "description": "Rótulo persistente de 13px e campo de pessoa de 15px com altura mínima de 42px; no celular, 16px e 44px. Erros ficam junto do controle e são associados por aria-describedby."
     },
     {
       "css": ".ds-nav{font-family:\"DM Sans Variable\",\"Segoe UI\",sans-serif; display:block;width:100%;padding:13px 14px;margin-bottom:7px;border:0;border-radius:7px;text-align:left;font-size:14px;font-weight:550;background:transparent;color:var(--ui-58675f,#58675f);cursor:pointer}.ds-nav:hover{background:var(--ui-f3f6f3,#f3f6f3)}.ds-nav[aria-current=page]{background:var(--ui-e9f3ec,#e9f3ec);color:var(--ui-176348,#176348)}.ds-nav:focus-visible{outline:3px solid var(--ui-35865f,#35865f);outline-offset:3px}",
@@ -1114,9 +1124,9 @@
       "name": "Participantes e grupos opcionais",
       "kind": "custom",
       "refersTo": "native-select",
-      "description": "Selects nativos para um ou dois doadores e de um a dez donatários; abas por pessoa com rolagem horizontal e largura mínima de 93px. Matrícula segue o campo opcional comum.",
-      "html": "<section class=\"ds-form-v2\"><label class=\"ds-count\"><strong>Doadores neste contrato</strong><select><option>1 doador</option><option>2 doadores</option></select></label><label class=\"ds-count\"><strong>Donatários neste contrato</strong><select aria-label=\"Quantidade de donatários\"><option>1 donatário</option><option>2 donatários</option><option>3 donatários</option><option>4 donatários</option><option>5 donatários</option><option>6 donatários</option><option>7 donatários</option><option>8 donatários</option><option>9 donatários</option><option>10 donatários</option></select></label><details><summary>Qualificação e filiação <span>opcional</span></summary><label>Estado civil<select><option>Selecione</option><option>solteira</option><option>casada</option></select></label></details></section>",
-      "css": ".ds-form-v2{font-family:\"DM Sans Variable\",\"Segoe UI\",sans-serif;color:var(--ui-202c28,#202c28);font-size:12px}.ds-count{display:flex;align-items:center;justify-content:space-between;gap:20px;padding:3px 2px 22px;margin-bottom:23px;border-bottom:1px solid var(--ui-dce3dd,#dce3dd)}.ds-count strong{font-size:14px}.ds-form-v2 select{font:inherit;font-size:13px;color:var(--ui-202c28,#202c28);background:var(--ui-fff,#fff);border:1px solid var(--ui-d6dfd7,#d6dfd7);border-radius:5px;padding:6px 10px;height:38px;max-width:100%;}.ds-form-v2 details{border-top:1px solid var(--ui-dce3dd,#dce3dd);padding:17px 0;font-size:13px}.ds-form-v2 summary{cursor:pointer;font-weight:550;color:var(--ui-294b36,#294b36)}.ds-form-v2 summary span{float:right;color:var(--ui-58675f,#58675f);font-size:11px;font-weight:400}.ds-form-v2 details[open] summary{margin-bottom:20px}.ds-form-v2 details label{display:grid;gap:7px;font-size:12px}.ds-form-v2 select:focus,.ds-form-v2 summary:focus-visible{outline:2px solid var(--ui-35865f,#35865f);outline-offset:1px}"
+      "description": "Configuração recolhida por padrão em details/summary; selects nativos para um ou dois doadores e de um a dez donatários. Grupos opcionais permanecem expansíveis.",
+      "html": "<details class=\"ds-setup\"><summary>Participantes e opções do documento</summary><section class=\"ds-form-v2\"><label class=\"ds-count\"><strong>Doadores neste contrato</strong><select><option>1 doador</option><option>2 doadores</option></select></label><label class=\"ds-count\"><strong>Donatários neste contrato</strong><select aria-label=\"Quantidade de donatários\"><option>1 donatário</option><option>2 donatários</option><option>3 donatários</option><option>4 donatários</option><option>5 donatários</option><option>6 donatários</option><option>7 donatários</option><option>8 donatários</option><option>9 donatários</option><option>10 donatários</option></select></label><details><summary>Qualificação e filiação <span>opcional</span></summary><label>Estado civil<select><option>Selecione</option><option>solteira</option><option>casada</option></select></label></details></section></details>",
+      "css": ".ds-form-v2{font-family:\"DM Sans Variable\",\"Segoe UI\",sans-serif;color:var(--ui-202c28,#202c28);font-size:12px}.ds-count{display:flex;align-items:center;justify-content:space-between;gap:20px;padding:3px 2px 22px;margin-bottom:23px;border-bottom:1px solid var(--ui-dce3dd,#dce3dd)}.ds-count strong{font-size:14px}.ds-form-v2 select{font:inherit;font-size:13px;color:var(--ui-202c28,#202c28);background:var(--ui-fff,#fff);border:1px solid var(--ui-d6dfd7,#d6dfd7);border-radius:5px;padding:6px 10px;height:38px;max-width:100%;}.ds-form-v2 details{border-top:1px solid var(--ui-dce3dd,#dce3dd);padding:17px 0;font-size:13px}.ds-form-v2 summary{cursor:pointer;font-weight:550;color:var(--ui-294b36,#294b36)}.ds-form-v2 summary span{float:right;color:var(--ui-58675f,#58675f);font-size:11px;font-weight:400}.ds-form-v2 details[open] summary{margin-bottom:20px}.ds-form-v2 details label{display:grid;gap:7px;font-size:12px}.ds-form-v2 select:focus,.ds-form-v2 summary:focus-visible{outline:2px solid var(--ui-35865f,#35865f);outline-offset:1px} .ds-setup{font-family:\"DM Sans Variable\",\"Segoe UI\",sans-serif;border:1px solid var(--ui-dce3dd,#dce3dd);border-radius:10px;background:var(--ui-fff,#fff);color:var(--ui-202c28,#202c28)}.ds-setup>summary{padding:16px 20px;font-size:14px;font-weight:600;cursor:pointer}.ds-setup>.ds-form-v2{padding:0 20px 12px}.ds-setup>summary:focus-visible{outline:3px solid var(--ui-35865f,#35865f);outline-offset:3px}@media(max-width:760px){.ds-setup>summary{padding:14px}.ds-setup>.ds-form-v2{padding:0 14px 12px}}"
     },
     {
       "name": "Forma de assinatura por pessoa",
@@ -1148,18 +1158,25 @@
       "css": ".ds-completion{font-family:\"DM Sans Variable\",\"Segoe UI\",sans-serif;font-size:12px;margin:18px 23px 0;padding:12px;background:var(--ui-eef5ef,#eef5ef);border-radius:6px;color:var(--ui-214f35,#214f35)}.ds-completion summary{cursor:pointer;font-weight:600}.ds-completion button{display:block;text-align:left;width:100%;padding:9px 0;border:0;border-bottom:1px solid var(--ui-dce3dd,#dce3dd);background:none;color:inherit;font:inherit;cursor:pointer}.ds-completion button:hover{text-decoration:underline}.ds-completion button:active{background:var(--ui-e9f3ec,#e9f3ec)}.ds-completion button:focus-visible,.ds-completion summary:focus-visible{outline:3px solid var(--ui-35865f,#35865f);outline-offset:3px}@media(max-width:640px){.ds-completion{margin-inline:17px}}"
     },
     {
-      "name": "Conexão com o Word local",
-      "kind": "custom",
-      "description": "Painel de estado com verificação manual, download do conversor e instruções expansíveis. Erros usam o tom de revisão; no celular as ações ocupam toda a largura.",
-      "html": "<section class=\"ds-converter\" aria-label=\"Conexão com o Word local\"><strong>Ative o Word local para gerar PDF</strong><p>Abra ABRIR-SITE.cmd neste computador.</p><button>Verificar conexão</button><p><a href=\"downloads/Conversor-FacilPDF.zip\" download>Baixar conversor do Word</a></p><details><summary>Como ativar o PDF</summary><ol><li>Extraia o conversor e abra ABRIR-SITE.cmd no Windows com Word instalado.</li><li>Mantenha a janela aberta e permita acesso à rede local quando solicitado.</li><li>Verifique a conexão e gere ou salve o PDF.</li></ol></details></section>",
-      "css": ".ds-converter{font-family:\"DM Sans Variable\",\"Segoe UI\",sans-serif;background:var(--ui-fff,#fff);color:var(--ui-202c28,#202c28);border:1px solid var(--ui-dce3dd,#dce3dd);border-radius:10px;padding:18px 20px;font-size:13px}.ds-converter p{font-size:12px;color:var(--ui-58675f,#58675f);margin:7px 0 12px}.ds-converter [role=alert]{color:var(--ui-894d16,#894d16)}.ds-converter a,.ds-converter summary{color:var(--ui-176348,#176348)}.ds-converter summary{cursor:pointer}.ds-converter ol{padding-left:20px;line-height:1.7}.ds-converter button{font:inherit;border:0;border-radius:4px;padding:8px 12px;background:var(--green-a3,#00a43319);color:var(--ui-176348,#176348);cursor:pointer}.ds-converter button:hover{background:var(--green-a4,#00a83829)}.ds-converter button:disabled{opacity:.5;cursor:not-allowed}.ds-converter button:focus-visible,.ds-converter a:focus-visible,.ds-converter summary:focus-visible{outline:3px solid var(--ui-35865f,#35865f);outline-offset:3px}@media(max-width:640px){.ds-converter{padding:16px}}"
-    },
-    {
       "name": "Paginação da prévia PDF",
       "kind": "custom",
       "description": "Contador anunciado, botões suaves desabilitados nos limites e canvas branco proporcional em PdfPreview.tsx. Carregamento e erro são textuais.",
       "html": "<div class=\"ds-pdf\"><nav class=\"ds-pdf-pages\" aria-label=\"Paginação do PDF\"><button aria-label=\"Página anterior do PDF\" disabled>‹</button><span aria-live=\"polite\">Página 1 de 3</span><button aria-label=\"Próxima página do PDF\">›</button></nav><p role=\"status\">Carregando página…</p></div>",
       "css": ".ds-pdf{font-family:\"DM Sans Variable\",\"Segoe UI\",sans-serif;width:100%;min-width:0;color:var(--ui-202c28,#202c28)}.ds-pdf-pages{display:flex;align-items:center;justify-content:center;gap:15px;margin-bottom:16px;font-size:12px}.ds-pdf-pages button{border:0;border-radius:4px;padding:4px 8px;color:var(--ui-176348,#176348);background:var(--green-a3,#00a43319);cursor:pointer}.ds-pdf-pages button:hover{background:var(--green-a4,#00a83829)}.ds-pdf-pages button:focus-visible{outline:3px solid var(--ui-35865f,#35865f);outline-offset:3px}.ds-pdf-pages button:disabled{opacity:.5;cursor:not-allowed}.ds-pdf>p{font-size:12px;text-align:center}"
+    },
+    {
+      "name": "Pessoa ou etapa",
+      "kind": "nav",
+      "description": "Select nomeado com pendências por pessoa e navegação anterior/próxima. No celular, seletor e botões ocupam linhas separadas.",
+      "html": "<nav class=\"ds-person-nav\" aria-label=\"Etapa do preenchimento\"><label><span>Pessoa ou etapa · 1 de 3</span><select aria-label=\"Pessoa ou etapa\"><option>Ana · Doador 1 · Pronto</option>Donatário 1 · 2 pendência(s)</option><option>Imóvel · 1 pendência(s)</option></select></label><div><button disabled>Anterior</button><button>Próxima</button></div></nav>",
+      "css": ".ds-person-nav{font-family:\"DM Sans Variable\",\"Segoe UI\",sans-serif;display:flex;align-items:end;gap:12px;flex-wrap:wrap;padding:16px 22px;color:var(--ui-202c28,#202c28);border-bottom:1px solid var(--ui-dce3dd,#dce3dd)}.ds-person-nav label{flex:1;min-width:0}.ds-person-nav span{display:block;font-size:12px;color:var(--ui-58675f,#58675f);margin-bottom:6px}.ds-person-nav select{width:100%;font:inherit;font-size:14px;min-height:44px;background:var(--ui-fff,#fff);color:inherit;border:1px solid var(--ui-d6dfd7,#d6dfd7);border-radius:5px}.ds-person-nav>div{display:flex;gap:8px}.ds-person-nav button{font:inherit;font-size:14px;background:var(--green-a3,#00a43319);color:var(--ui-176348,#176348);border:0;border-radius:4px;padding:8px 12px;cursor:pointer}.ds-person-nav button:hover{background:var(--green-a4,#00a83829)}.ds-person-nav button:disabled{opacity:.5;cursor:not-allowed}.ds-person-nav :is(button,select):focus-visible{outline:3px solid var(--ui-35865f,#35865f);outline-offset:3px}@media(max-width:760px){.ds-person-nav{padding:14px 17px}.ds-person-nav label{flex-basis:100%}.ds-person-nav>div{width:100%}.ds-person-nav button{flex:1;min-height:44px}}"
+    },
+    {
+      "name": "Preencher e conferir no celular",
+      "kind": "nav",
+      "description": "Alternador preso ao topo até 760px; apresenta um painel por vez. Botões com mínimo de 46px e estado aria-pressed.",
+      "html": "<nav class=\"ds-panel-switch\" aria-label=\"Área do documento\"><button aria-pressed=\"true\">Preencher</button><button aria-pressed=\"false\">Conferir PDF</button></nav>",
+      "css": ".ds-panel-switch{font-family:\"DM Sans Variable\",\"Segoe UI\",sans-serif;display:flex;position:sticky;top:0;gap:6px;padding:8px 0;background:var(--ui-f5f7f5,#f5f7f5)}.ds-panel-switch button{flex:1;min-height:46px;border:1px solid var(--ui-dce3dd,#dce3dd);border-radius:6px;background:var(--ui-fff,#fff);color:var(--ui-202c28,#202c28);font:inherit;font-size:14px;cursor:pointer}.ds-panel-switch button[aria-pressed=true]{background:var(--ui-e9f3ec,#e9f3ec);border-color:var(--ui-176348,#176348);color:var(--ui-176348,#176348);font-weight:650}.ds-panel-switch button:hover{background:var(--ui-f3f6f3,#f3f6f3)}.ds-panel-switch button:focus-visible{outline:3px solid var(--ui-35865f,#35865f);outline-offset:3px}"
     }
   ],
   "narrative": {
@@ -1167,7 +1184,7 @@
       "Reutilizar verde, superfícies do modo escolhido, bordas e hierarquia compacta.",
       "Preservar rótulos, foco visível e mensagens de progresso.",
       "Adaptar painéis e ações nos pontos de quebra documentados.",
-      "Manter a aparência do documento no modelo Word e no PDF convertido.",
+      "Preservar o modelo no Word editável e conferir o PDF gerado no navegador com fontes equivalentes.",
       "Usar texto opaco no acento do modo para ações suaves e rótulos persistentes no preenchimento assistido."
     ],
     "keyCharacteristics": [
@@ -1190,6 +1207,6 @@
       "Apresentar histórico local como sincronização entre dispositivos."
     ],
     "northStar": "Operate — mesa de edição documental",
-    "overview": "Um espaço de trabalho com verde documental, superfícies claras ou escuras e papel branco. A hierarquia acompanha a tarefa: preencher, conferir o documento e salvar. Formulário e PDF dividem o espaço disponível; scanner e histórico usam vistas próprias.\n\nEste documento atualiza a direção provisória com os valores implementados em `src/styles.css`, `src/form-v2.css`, `src/App.tsx`, `src/ContractForm.tsx`, `src/ScannerView.tsx`, `src/theme.css`, `src/Appearance.tsx`, `src/LocationFields.tsx` e no tema Radix compartilhado. A interface foi desenvolvida em código para teste local; não representa aprovação de uma composição visual pelo usuário. O modo escuro e a preferência persistente foram solicitados pelo usuário como extensão da identidade existente. Direção inicial: variância 3/10, movimento 2/10 e densidade 5/10."
+    "overview": "Um espaço de trabalho com verde documental, superfícies claras ou escuras e papel branco. A hierarquia acompanha a tarefa: preencher, conferir o documento e salvar. Formulário e PDF dividem o espaço disponível no desktop; no celular, Preencher e Conferir PDF alternam o painel visível. Scanner e histórico usam vistas próprias.\n\nEste documento atualiza a direção provisória com os valores implementados em `src/styles.css`, `src/form-v2.css`, `src/workflow.css`, `src/App.tsx`, `src/ContractForm.tsx`, `src/ScannerView.tsx`, `src/theme.css`, `src/Appearance.tsx`, `src/LocationFields.tsx` e no tema Radix compartilhado. A interface foi desenvolvida em código para teste local; não representa aprovação de uma composição visual pelo usuário. O modo escuro e a preferência persistente foram solicitados pelo usuário como extensão da identidade existente. Direção inicial: variância 3/10, movimento 2/10 e densidade 5/10."
   }
 }

@@ -44,12 +44,13 @@ import {
   loadDraft,
   type RecordEntry,
 } from "./storage";
-import { generateDocx, convertPdf } from "./template";
+import { generateDocx } from "./template";
 import { personKeys, type Finding } from "./scanner";
 import { PersonEditor, PropertyEditor } from "./ContractForm";
 import ScannerView from "./ScannerView";
 import PdfPreview from "./PdfPreview";
-import { checkConverter } from "./converter";
+
+import { ValidationContext } from "./ValidationContext";
 type View = "editor" | "scanner" | "history" | "settings";
 const titles = {
   editor: "Novo documento",
@@ -58,22 +59,38 @@ const titles = {
   settings: "Configuração",
 };
 export default function App() {
-  const [pdfMethod, setPdfMethod] = useState<"browser" | "word">(() => {
-    try {
-      return localStorage.getItem("facilpdf-pdf-method") === "word"
-        ? "word"
-        : "browser";
-    } catch {
-      return "browser";
-    }
-  });
-  useEffect(() => {
-    try {
-      localStorage.setItem("facilpdf-pdf-method", pdfMethod);
-    } catch {}
-  }, [pdfMethod]);
   const { dark, preference, setPreference } = useAppearance();
-  const [view, setView] = useState<View>("editor");
+  const [view, updateView] = useState<View>("editor");
+  const [mobilePane, setMobilePane] = useState<"form" | "preview">("form");
+  const [attempted, setAttempted] = useState(false);
+  const [draftStatus, setDraftStatus] = useState("Carregando rascunho…");
+  const [undoDraft, setUndoDraft] = useState<{
+    data: FormData;
+    pdf?: Blob;
+    section: string;
+  }>();
+  const completion = useRef<HTMLDetailsElement>(null);
+  function setView(next: View) {
+    if (next !== view) setMessage("");
+    updateView(next);
+    setMobilePane("form");
+  }
+  useEffect(() => {
+    window.scrollTo({ top: 0 });
+    document
+      .querySelector<HTMLElement>(".page-heading h1")
+      ?.focus({ preventScroll: true });
+  }, [view]);
+  const previousPane = useRef(mobilePane);
+  useEffect(() => {
+    if (previousPane.current === mobilePane) return;
+    previousPane.current = mobilePane;
+    if (view === "editor" && window.matchMedia("(max-width: 760px)").matches) {
+      document
+        .querySelector(".mobile-panel-switch")
+        ?.scrollIntoView({ block: "start" });
+    }
+  }, [mobilePane, view]);
   const [data, setData] = useState<FormData>(emptyForm);
   const currentData = useRef(data);
   currentData.current = data;
@@ -81,27 +98,8 @@ export default function App() {
   const [records, setRecords] = useState<RecordEntry[]>([]);
   const [ready, setReady] = useState(false);
   const [message, setMessage] = useState("");
-  const [errors, setErrors] = useState<string[]>([]);
+
   const [busy, setBusy] = useState(false);
-  const [connection, setConnection] = useState<
-    "unknown" | "checking" | "connected" | "failed"
-  >("unknown");
-  const [connectionError, setConnectionError] = useState("");
-  async function connectWord() {
-    setConnection("checking");
-    setConnectionError("");
-    try {
-      await checkConverter();
-      setConnection("connected");
-    } catch (error) {
-      setConnection("failed");
-      setConnectionError(
-        error instanceof Error
-          ? error.message
-          : "Não foi possível conectar ao Word.",
-      );
-    }
-  }
   const [pdf, setPdf] = useState<Blob>();
   const [pdfUrl, setPdfUrl] = useState("");
   const [dirty, setDirty] = useState(false);
@@ -123,14 +121,26 @@ export default function App() {
   }, []);
   useEffect(() => {
     if (!ready) return;
+    let active = true;
+    setDraftStatus("Salvando…");
     const timer = setTimeout(() => {
-      saveDraft(data).catch(() =>
-        setMessage(
-          "Não foi possível salvar o rascunho. Verifique o espaço disponível.",
-        ),
-      );
+      saveDraft(data)
+        .then(() => {
+          if (active) setDraftStatus("Salvo neste navegador");
+        })
+        .catch(() => {
+          if (active) {
+            setDraftStatus("Rascunho não salvo");
+            setMessage(
+              "Não foi possível salvar o rascunho. Verifique o espaço disponível.",
+            );
+          }
+        });
     }, 500);
-    return () => clearTimeout(timer);
+    return () => {
+      active = false;
+      clearTimeout(timer);
+    };
   }, [data, ready]);
   useEffect(() => {
     if (!pdf) {
@@ -144,7 +154,7 @@ export default function App() {
   const edit = (next: FormData) => {
     setData(structuredClone(next));
     setDirty(true);
-    setErrors([]);
+    setMessage("");
   };
   const announce = (s: string) => setMessage(s);
   async function persistPDF(blob: Blob, savedData: FormData) {
@@ -162,23 +172,20 @@ export default function App() {
   async function makePDF(save = false) {
     const snapshot = JSON.stringify(data);
     const issues = validate(data);
-    setErrors(issues);
     if (issues.length) {
-      announce("Revise os campos indicados antes de gerar.");
+      setAttempted(true);
+      setMobilePane("form");
+      if (completion.current) completion.current.open = true;
+      reviewIssue(issues[0]);
       return;
     }
+    setMessage("");
     setBusy(true);
     try {
       const docx = await generateDocx(data);
-      const blob =
-        pdfMethod === "browser"
-          ? await (await import("./browserPdf")).browserPdf(docx)
-          : await convertPdf(docx);
-      if (pdfMethod === "word") {
-        setConnection("connected");
-        setConnectionError("");
-      }
+      const blob = await (await import("./browserPdf")).browserPdf(docx);
       setPdf(blob);
+      setMobilePane("preview");
       const changed = JSON.stringify(currentData.current) !== snapshot;
       setDirty(changed);
       if (save && !changed)
@@ -190,12 +197,6 @@ export default function App() {
             : "PDF pronto. Confira o documento e salve no histórico.",
         );
     } catch (e) {
-      if (pdfMethod === "word") {
-        setConnection("failed");
-        setConnectionError(
-          e instanceof Error ? e.message : "Não foi possível gerar o PDF.",
-        );
-      }
       announce(
         e instanceof Error ? e.message : "Não foi possível gerar o PDF.",
       );
@@ -221,11 +222,14 @@ export default function App() {
   }
   async function word() {
     const issues = validate(data);
-    setErrors(issues);
     if (issues.length) {
-      announce("Preencha os campos obrigatórios para baixar o Word.");
+      setAttempted(true);
+      setMobilePane("form");
+      if (completion.current) completion.current.open = true;
+      reviewIssue(issues[0]);
       return;
     }
+    setMessage("");
     try {
       download(await generateDocx(data), filename(data.recipient.name, "docx"));
       announce("Word preenchido com o modelo original.");
@@ -294,10 +298,12 @@ export default function App() {
     return true;
   }
   const newDocument = () => {
+    setUndoDraft({ data: structuredClone(data), pdf, section });
     edit(emptyForm());
     setPdf(undefined);
     setView("editor");
     setSection("recipient");
+    setAttempted(false);
     announce("Novo documento iniciado.");
   };
   const currentPerson =
@@ -332,23 +338,42 @@ export default function App() {
     ).values(),
   ];
   const issues = validate(data);
+  const previousSection = useRef(section);
+  useEffect(() => {
+    if (previousSection.current === section) return;
+    previousSection.current = section;
+    document
+      .querySelector(".person-navigation")
+      ?.scrollIntoView({ block: "start", behavior: "smooth" });
+  }, [section]);
   function reviewIssue(issue: string) {
     const who = activePeople(data).find((key) =>
       issue.startsWith(personLabels[key] + ":"),
     );
     setSection(who || "land");
     requestAnimationFrame(() => {
-      const term = issue
+      let term = issue
         .split(":")
         .pop()!
         .trim()
         .replace(/ inválid[oa].*$/, "");
+      if (term === "Localização do imóvel") term = "UF do imóvel";
+      if (term.startsWith("A área doada")) term = "Área doada";
+      if (term.startsWith("confira município")) term = "Município";
       const label = [
         ...document.querySelectorAll<HTMLLabelElement>(".person-editor label"),
-      ].find((label) => label.textContent?.includes(term));
+      ].find((label) =>
+        label.textContent
+          ?.toLocaleLowerCase()
+          .includes(term.toLocaleLowerCase()),
+      );
       const target = label?.querySelector<HTMLElement>("input,select,textarea");
-      if (target) target.focus();
-      else
+      if (target) {
+        const details = target.closest("details");
+        if (details) details.open = true;
+        target.focus({ preventScroll: true });
+        target.scrollIntoView({ block: "center", behavior: "smooth" });
+      } else
         document
           .querySelector(".form-intro")
           ?.scrollIntoView({ behavior: "smooth", block: "center" });
@@ -448,7 +473,7 @@ export default function App() {
         <div className="page-content">
           <div className="page-heading">
             <div>
-              <h1>{titles[view]}</h1>
+              <h1 tabIndex={-1}>{titles[view]}</h1>
               <p>
                 {view === "editor"
                   ? "Do preenchimento à assinatura, tudo no lugar."
@@ -497,171 +522,171 @@ export default function App() {
                   <Scan /> Importar dados <ArrowRight />
                 </Button>
               </div>
-              <div className="pdf-method">
-                <label>
-                  <strong>Como gerar o PDF?</strong>
-                  <select
-                    aria-label="Forma de gerar o PDF"
-                    value={pdfMethod}
-                    disabled={busy}
-                    onChange={(event) => {
-                      setPdfMethod(event.target.value as "browser" | "word");
-                      setDirty(true);
-                    }}
-                  >
-                    <option value="browser">
-                      PDF pelo site · sem instalação
-                    </option>
-                    <option value="word">PDF pelo Word · opcional</option>
-                  </select>
-                </label>
-                <div className="pdf-method-benefits" aria-live="polite">
-                  <strong>
-                    {pdfMethod === "browser"
-                      ? "Mais prático para o dia a dia"
-                      : "Maior fidelidade ao modelo do Word"}
-                  </strong>
-                  <p>
-                    {pdfMethod === "browser"
-                      ? "Gere, confira e salve aqui mesmo, no computador ou celular. Sem instalar programas nem abrir um conversor. Os dados são processados no navegador."
-                      : "O próprio Word exporta o contrato, preservando suas fontes e regras de paginação. Ideal quando a aparência do modelo original é a prioridade."}
-                  </p>
-                  <p>
-                    {pdfMethod === "browser"
-                      ? "Usa fontes equivalentes às do modelo; as quebras de linha e de página podem variar em relação ao Word."
-                      : "Requer Windows, Microsoft Word instalado e o conversor local aberto neste computador."}
-                  </p>
-                  <p>
-                    As duas opções geram PDF. Para editar o texto depois, use{" "}
-                    <strong>Baixar Word</strong>.
-                  </p>
-                </div>
-              </div>
-              {pdfMethod === "word" && (
-                <section
-                  className="converter-status"
-                  aria-label="Conexão com o Word local"
-                >
-                  <div>
-                    <strong>
-                      {connection === "connected"
-                        ? "Word conectado · PDF disponível"
-                        : connection === "checking"
-                          ? "Verificando o Word…"
-                          : "Ative o Word local para gerar PDF"}
-                    </strong>
-                    <p>
-                      O scanner e o Word preenchido funcionam sem conexão com o
-                      conversor. Para gerar PDF com a formatação original, abra
-                      ABRIR-SITE.cmd neste computador.
-                    </p>
-                    {connectionError && <p role="alert">{connectionError}</p>}
-                  </div>
-                  <div className="converter-actions">
-                    <Button
-                      variant="soft"
-                      disabled={connection === "checking" || busy}
-                      onClick={() => void connectWord()}
-                    >
-                      Verificar conexão
-                    </Button>
-                    <a
-                      href={`${import.meta.env.BASE_URL}downloads/Conversor-FacilPDF.zip`}
-                      download
-                    >
-                      Baixar conversor do Word
-                    </a>
-                  </div>
-                  <details>
-                    <summary>Como ativar o PDF</summary>
-                    <ol>
-                      <li>
-                        Baixe o conversor, extraia a pasta e abra ABRIR-SITE.cmd
-                        no Windows com Word instalado.
-                      </li>
-                      <li>
-                        Mantenha a janela aberta durante o uso. Quando
-                        solicitado pelo navegador, permita o acesso à rede local
-                        para este site.
-                      </li>
-                      <li>
-                        Clique em Verificar conexão. Depois use Gerar prévia ou
-                        Salvar PDF e histórico.
-                      </li>
-                    </ol>
-                    <p>
-                      Em celular ou computador sem Word, baixe o Word preenchido
-                      e abra-o em um computador com o conversor.
-                    </p>
-                  </details>
-                </section>
-              )}
-              <div className="participant-config">
-                <div>
-                  <strong>Quantas pessoas estão doando?</strong>
+              <details className="document-setup">
+                <summary>
+                  Participantes e formato{" "}
                   <span>
-                    O texto e as assinaturas se ajustam à sua escolha.
+                    {data.donorCount}{" "}
+                    {data.donorCount === 1 ? "doador" : "doadores"} ·{" "}
+                    {data.recipientCount}{" "}
+                    {data.recipientCount === 1 ? "donatário" : "donatários"} ·
+                    PDF pelo site
                   </span>
+                </summary>
+                <div className="setup-content">
+                  <h2>PDF pronto ou Word editável</h2>
+                  <p>
+                    <strong>PDF pelo site:</strong> gere, confira e salve sem
+                    instalar nada, no computador ou celular. O processamento
+                    acontece no navegador.
+                  </p>
+                  <p>
+                    <strong>Word editável:</strong> baixe o contrato em DOCX
+                    para ajustar no Word ou em outro editor compatível. Não
+                    precisa conectar um conversor.
+                  </p>
+                  <p>
+                    O PDF usa fontes equivalentes às do modelo. Ao abrir o DOCX
+                    em outro editor, as quebras de linha e página podem variar.
+                  </p>
+                  <div className="participant-config">
+                    <div>
+                      <strong>Quantas pessoas estão doando?</strong>
+                      <span>
+                        O texto e as assinaturas se ajustam à sua escolha.
+                      </span>
+                    </div>
+                    <select
+                      aria-label="Quantidade de doadores"
+                      value={data.donorCount}
+                      onChange={(e) => {
+                        edit({
+                          ...data,
+                          donorCount: Number(e.target.value) as 1 | 2,
+                        });
+                        if (e.target.value === "1" && section === "donor2")
+                          setSection("donor1");
+                      }}
+                    >
+                      <option value="1">1 doador</option>
+                      <option value="2">2 doadores</option>
+                    </select>
+                  </div>
+                  <div className="participant-config">
+                    <div>
+                      <strong>Quantas pessoas recebem a doação?</strong>
+                      <span>
+                        Cada donatário terá seus próprios dados e sua forma de
+                        assinar.
+                      </span>
+                    </div>
+                    <select
+                      aria-label="Quantidade de donatários"
+                      value={data.recipientCount}
+                      onChange={(e) =>
+                        changeRecipientCount(Number(e.target.value))
+                      }
+                    >
+                      {Array.from({ length: 10 }, (_, i) => (
+                        <option key={i + 1} value={i + 1}>
+                          {i + 1} {i === 0 ? "donatário" : "donatários"}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
                 </div>
-                <select
-                  aria-label="Quantidade de doadores"
-                  value={data.donorCount}
-                  onChange={(e) => {
-                    edit({
-                      ...data,
-                      donorCount: Number(e.target.value) as 1 | 2,
-                    });
-                    if (e.target.value === "1" && section === "donor2")
-                      setSection("donor1");
-                  }}
+              </details>
+              <div
+                className="mobile-panel-switch"
+                aria-label="Área do documento"
+              >
+                <button
+                  aria-pressed={mobilePane === "form"}
+                  onClick={() => setMobilePane("form")}
                 >
-                  <option value="1">1 doador</option>
-                  <option value="2">2 doadores</option>
-                </select>
-              </div>
-              <div className="participant-config">
-                <div>
-                  <strong>Quantas pessoas recebem a doação?</strong>
-                  <span>
-                    Cada donatário terá seus próprios dados e sua forma de
-                    assinar.
-                  </span>
-                </div>
-                <select
-                  aria-label="Quantidade de donatários"
-                  value={data.recipientCount}
-                  onChange={(e) => changeRecipientCount(Number(e.target.value))}
+                  Preencher
+                </button>
+                <button
+                  aria-pressed={mobilePane === "preview"}
+                  onClick={() => setMobilePane("preview")}
                 >
-                  {Array.from({ length: 10 }, (_, i) => (
-                    <option key={i + 1} value={i + 1}>
-                      {i + 1} {i === 0 ? "donatário" : "donatários"}
-                    </option>
-                  ))}
-                </select>
+                  Conferir PDF
+                </button>
               </div>
-              <div className="editor-layout">
+              <div className={`editor-layout pane-${mobilePane}`}>
                 <section className="form-panel" aria-label="Preenchimento">
                   <div className="panel-header">
                     <h2>Preencher documento</h2>
-                    <span className="draft-label">Rascunho local</span>
+                    <span className="draft-label" role="status">
+                      {draftStatus}
+                    </span>
                   </div>
-                  <div
-                    className="section-tabs"
-                    role="tablist"
-                    aria-label="Seções do formulário"
-                  >
-                    {sections.map(([id, label]) => (
-                      <button
-                        role="tab"
-                        aria-selected={section === id}
-                        key={id}
-                        onClick={() => setSection(id)}
+                  <div className="person-navigation">
+                    <label>
+                      <span>
+                        Pessoa ou etapa ·{" "}
+                        {sections.findIndex(([id]) => id === section) + 1} de{" "}
+                        {sections.length}
+                      </span>
+                      <select
+                        aria-label="Pessoa ou etapa"
+                        value={section}
+                        onChange={(event) => setSection(event.target.value)}
                       >
-                        {label}
-                      </button>
-                    ))}
+                        {sections.map(([id, label]) => {
+                          const person =
+                            id !== "land" ? data[id as PersonKey] : undefined;
+                          const pending =
+                            id === "land"
+                              ? issues.filter(
+                                  (issue) =>
+                                    !activePeople(data).some((key) =>
+                                      issue.startsWith(personLabels[key] + ":"),
+                                    ),
+                                ).length
+                              : issues.filter((issue) =>
+                                  issue.startsWith(label + ":"),
+                                ).length;
+                          return (
+                            <option key={id} value={id}>
+                              {person?.name ? person.name + " · " : ""}
+                              {label} ·{" "}
+                              {pending ? pending + " pendência(s)" : "Pronto"}
+                            </option>
+                          );
+                        })}
+                      </select>
+                    </label>
+                    <div>
+                      <Button
+                        variant="soft"
+                        disabled={section === sections[0][0]}
+                        onClick={() =>
+                          setSection(
+                            sections[
+                              sections.findIndex(([id]) => id === section) - 1
+                            ][0],
+                          )
+                        }
+                      >
+                        Anterior
+                      </Button>
+                      <Button
+                        variant="soft"
+                        disabled={section === "land"}
+                        onClick={() =>
+                          setSection(
+                            sections[
+                              sections.findIndex(([id]) => id === section) + 1
+                            ][0],
+                          )
+                        }
+                      >
+                        Próxima
+                      </Button>
+                    </div>
                   </div>
-                  <details className="completion-check">
+                  <details ref={completion} className="completion-check">
                     <summary>
                       {issues.length
                         ? `${issues.length} ${issues.length === 1 ? "ajuste para concluir" : "ajustes para concluir"}`
@@ -736,58 +761,62 @@ export default function App() {
                       </label>
                     )}
                   </div>
-                  {currentPerson ? (
-                    <PersonEditor
-                      key={currentPerson}
-                      person={data[currentPerson]}
-                      who={currentPerson}
-                      addressSources={activePeople(data)
-                        .filter(
-                          (key) =>
-                            key !== currentPerson &&
-                            !!(
-                              data[key].street ||
-                              data[key].address ||
-                              data[key].city
-                            ),
-                        )
-                        .map((key) => ({
-                          key,
-                          label: personLabels[key],
-                          person: data[key],
-                        }))}
-                      onChange={(person) =>
-                        edit({ ...data, [currentPerson]: person })
-                      }
-                      copyAddress={
-                        currentPerson === "donor2"
-                          ? () => {
-                              const next = structuredClone(data);
-                              for (const key of [
-                                "address",
-                                "street",
-                                "number",
-                                "district",
-                                "city",
-                                "state",
-                                "postalCode",
-                                "complement",
-                              ] as const)
-                                next.donor2[key] = next.donor1[key];
-                              edit(next);
-                            }
-                          : undefined
-                      }
-                    />
-                  ) : (
-                    <PropertyEditor data={data} onChange={edit} />
-                  )}
-                  {errors.length > 0 && (
+                  <ValidationContext.Provider value={attempted}>
+                    {currentPerson ? (
+                      <PersonEditor
+                        key={currentPerson}
+                        person={data[currentPerson]}
+                        who={currentPerson}
+                        addressSources={activePeople(data)
+                          .filter(
+                            (key) =>
+                              key !== currentPerson &&
+                              !!(
+                                data[key].street ||
+                                data[key].address ||
+                                data[key].city
+                              ),
+                          )
+                          .map((key) => ({
+                            key,
+                            label: personLabels[key],
+                            person: data[key],
+                          }))}
+                        onChange={(person) =>
+                          edit({ ...data, [currentPerson]: person })
+                        }
+                        copyAddress={
+                          currentPerson === "donor2"
+                            ? () => {
+                                const next = structuredClone(data);
+                                for (const key of [
+                                  "address",
+                                  "street",
+                                  "number",
+                                  "district",
+                                  "city",
+                                  "state",
+                                  "postalCode",
+                                  "complement",
+                                ] as const)
+                                  next.donor2[key] = next.donor1[key];
+                                edit(next);
+                              }
+                            : undefined
+                        }
+                      />
+                    ) : (
+                      <PropertyEditor data={data} onChange={edit} />
+                    )}
+                  </ValidationContext.Provider>
+                  {attempted && issues.length > 0 && (
                     <div className="validation" role="alert">
                       <strong>Confira os seguintes campos</strong>
                       <ul>
-                        {errors.map((e, i) => (
-                          <li key={i}>{e}</li>
+                        {issues.map((e, i) => (
+                          <li key={i}>
+                            <button onClick={() => reviewIssue(e)}>{e}</button>
+                          </li>
                         ))}
                       </ul>
                     </div>
@@ -821,7 +850,7 @@ export default function App() {
                       <span>
                         {pdfUrl
                           ? dirty
-                            ? "Dados ou modo alterados. Gere uma nova prévia."
+                            ? "Dados alterados. Gere uma nova prévia."
                             : "Este é o PDF que será baixado."
                           : "A prévia mostra o PDF que será salvo."}
                       </span>
@@ -878,6 +907,24 @@ export default function App() {
                   </div>
                 </section>
               </div>
+              {undoDraft && (
+                <div className="undo-draft" role="status">
+                  <span>O documento anterior pode ser recuperado.</span>
+                  <Button
+                    variant="soft"
+                    onClick={() => {
+                      edit(undoDraft.data);
+                      setPdf(undoDraft.pdf);
+                      setSection(undoDraft.section);
+                      setAttempted(false);
+                      setUndoDraft(undefined);
+                      setMessage("Documento anterior recuperado.");
+                    }}
+                  >
+                    Desfazer novo documento
+                  </Button>
+                </div>
+              )}
               <div className="action-bar">
                 <button className="text-button" onClick={newDocument}>
                   <ArrowCounterClockwise size={18} /> Começar outro documento
@@ -886,7 +933,11 @@ export default function App() {
                   <Button variant="outline" onClick={word} disabled={busy}>
                     <DownloadSimple /> Baixar Word
                   </Button>
-                  <Button disabled={busy} onClick={() => void makePDF()}>
+                  <Button
+                    variant="soft"
+                    disabled={busy}
+                    onClick={() => void makePDF()}
+                  >
                     {busy ? "Gerando…" : "Atualizar prévia"}
                   </Button>
                   <Button disabled={busy || !ready} onClick={savePDF}>
@@ -1000,6 +1051,26 @@ export default function App() {
                         Reabrir
                       </Button>
                       <Button
+                        variant="ghost"
+                        onClick={() => {
+                          setUndoDraft({
+                            data: structuredClone(data),
+                            pdf,
+                            section,
+                          });
+                          edit(normalizeForm(record.data));
+                          setPdf(undefined);
+                          setSection("recipient");
+                          setAttempted(false);
+                          setView("editor");
+                          announce(
+                            "Cópia criada. Edite os dados e salve como um novo documento.",
+                          );
+                        }}
+                      >
+                        Duplicar
+                      </Button>
+                      <Button
                         variant="soft"
                         aria-label={`Baixar PDF de ${record.name}`}
                         onClick={() =>
@@ -1080,7 +1151,13 @@ export default function App() {
                     .includes(search.toLowerCase()),
                 ) && (
                   <p className="no-results">
-                    Nenhum documento encontrado para essa busca.
+                    Nenhum documento encontrado para essa busca.{" "}
+                    <button
+                      className="text-button"
+                      onClick={() => setSearch("")}
+                    >
+                      Limpar busca
+                    </button>
                   </p>
                 )}
             </section>
@@ -1106,12 +1183,11 @@ export default function App() {
               <p>
                 A escolha fica salva neste navegador. O tema não altera o PDF.
               </p>
-              <h2>Seu PDF, de duas formas.</h2>
+              <h2>Sem instalação e sem conexão com o Word</h2>
               <p>
-                PDF pelo site funciona sem instalar nada e mantém os dados neste
-                navegador. PDF pelo Word é uma alternativa opcional para
-                exportar pelo Word deste computador. A prévia, o download e o
-                histórico usam o mesmo PDF gerado.
+                Gere o PDF diretamente no site. Para editar o contrato em outro
+                programa, use Baixar Word. Nenhum conversor local é necessário.
+                A prévia, o download e o histórico usam o mesmo PDF.
               </p>
               <dl>
                 <dt>Modelo</dt>
@@ -1121,8 +1197,8 @@ export default function App() {
                 </dd>
                 <dt>Forma de gerar PDF</dt>
                 <dd>
-                  Escolha no formulário: PDF pelo site, sem instalação, ou PDF
-                  pelo Word, com conversor local opcional.
+                  PDF pelo site, sem instalação. Word editável em DOCX como
+                  alternativa.
                 </dd>
                 <dt>Histórico</dt>
                 <dd>
@@ -1132,8 +1208,8 @@ export default function App() {
                 <dt>Fonte do documento</dt>
                 <dd>
                   No site, Tinos e Carlito são fontes incorporadas equivalentes
-                  às do modelo. Na opção Word, são utilizadas as fontes do
-                  documento original.
+                  às do modelo. O DOCX preserva as fontes do documento original
+                  para abertura em um editor compatível.
                 </dd>
               </dl>
               <h3>Antes de salvar</h3>

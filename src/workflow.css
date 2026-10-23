@@ -1,0 +1,262 @@
+.document-setup {
+  margin: 0 0 20px;
+  border: 1px solid var(--ui-dce3dd);
+  border-radius: 10px;
+  background: var(--ui-fff);
+}
+.document-setup > summary {
+  cursor: pointer;
+  padding: 16px 20px;
+  font-size: 14px;
+  font-weight: 600;
+}
+.document-setup > summary span {
+  display: inline-block;
+  margin-left: 12px;
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--ui-58675f);
+}
+.setup-content {
+  padding: 0 20px 12px;
+}
+.setup-content h2 {
+  font-size: 16px;
+  margin: 10px 0;
+}
+.setup-content p {
+  font-size: 13px;
+  line-height: 1.65;
+  max-width: 75ch;
+}
+.setup-content .participant-config {
+  padding: 16px 0;
+}
+.person-navigation {
+  padding: 16px 22px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: 12px;
+  border-bottom: 1px solid var(--ui-dce3dd);
+}
+.person-navigation label {
+  flex: 1;
+  min-width: 0;
+}
+.person-navigation label > span {
+  display: block;
+  font-size: 12px;
+  color: var(--ui-58675f);
+  margin-bottom: 6px;
+}
+.person-navigation select {
+  width: 100%;
+  font-size: 14px;
+  min-height: 44px;
+}
+.person-navigation > div {
+  display: flex;
+  gap: 8px;
+}
+.person-editor .rt-TextFieldInput,
+.person-editor select,
+.person-editor textarea {
+  font-size: 15px;
+}
+.person-editor .rt-TextFieldRoot,
+.person-editor select {
+  min-height: 42px;
+}
+.person-editor .field-title {
+  font-size: 13px;
+}
+.person-editor .form-group > p,
+.person-editor .form-details > p {
+  font-size: 13px;
+}
+.signature-options small {
+  font-size: 12px;
+}
+.signature-options strong {
+  font-size: 13px;
+}
+.validation button {
+  border: 0;
+  background: transparent;
+  color: inherit;
+  text-align: left;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  padding: 6px 0;
+  cursor: pointer;
+}
+[aria-invalid="true"] {
+  outline: 1px solid var(--ui-873e23, #a54d32);
+  outline-offset: 1px;
+}
+.undo-draft {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 14px 18px;
+  margin-top: 18px;
+  background: var(--ui-fff);
+  border: 1px solid var(--ui-dce3dd);
+  border-radius: 8px;
+  font-size: 13px;
+}
+.mobile-panel-switch {
+  display: none;
+}
+.page-heading h1:focus {
+  outline: none;
+}
+.scan-options-advanced {
+  margin: 18px 0;
+}
+.scan-options-advanced > summary {
+  cursor: pointer;
+  font-size: 14px;
+  padding: 10px 0;
+}
+.review-filter {
+  margin: 14px 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+  font-size: 13px;
+}
+.review-filter label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.group-selection {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin: 12px 0;
+  color: var(--ui-58675f);
+  font-size: 13px;
+}
+.scan-apply {
+  position: sticky;
+  bottom: 0;
+  border-top: 1px solid var(--ui-dce3dd);
+  padding: 14px 0;
+}
+.scan-apply p {
+  font-size: 13px;
+}
+.no-results .text-button {
+  margin-left: 10px;
+}
+@media (max-width: 760px) {
+  .page-heading {
+    margin-bottom: 18px;
+  }
+  .document-bar {
+    padding: 14px;
+  }
+  .document-setup > summary {
+    padding: 14px;
+  }
+  .document-setup > summary span {
+    display: block;
+    margin: 5px 0 0 18px;
+  }
+  .setup-content {
+    padding: 0 14px 12px;
+  }
+  .mobile-panel-switch {
+    display: flex;
+    position: sticky;
+    top: 0;
+    z-index: 5;
+    gap: 6px;
+    padding: 8px 0;
+    background: var(--ui-f5f7f5, var(--ui-fff));
+    margin-bottom: 12px;
+  }
+  .mobile-panel-switch button {
+    flex: 1;
+    border: 1px solid var(--ui-dce3dd);
+    border-radius: 6px;
+    background: var(--ui-fff);
+    color: var(--ui-202c28);
+    font: inherit;
+    font-size: 14px;
+    min-height: 46px;
+    cursor: pointer;
+  }
+  .mobile-panel-switch button[aria-pressed="true"] {
+    background: var(--ui-e9f3ec);
+    border-color: var(--ui-176348);
+    color: var(--ui-176348);
+    font-weight: 650;
+  }
+  .pane-form .preview-panel,
+  .pane-preview .form-panel {
+    display: none;
+  }
+  .person-navigation {
+    padding: 14px 17px;
+  }
+  .person-navigation label {
+    flex-basis: 100%;
+  }
+  .person-navigation > div {
+    width: 100%;
+  }
+  .person-navigation > div > button {
+    flex: 1;
+  }
+  .person-editor .rt-TextFieldInput,
+  .person-editor select,
+  .person-editor textarea,
+  .finding-content input {
+    font-size: 16px;
+  }
+  .person-editor .field-grid {
+    grid-template-columns: 1fr;
+  }
+  .person-editor .form-group > p,
+  .form-intro p,
+  .preview-header span {
+    font-size: 13px;
+  }
+  .rt-Button,
+  .person-editor select,
+  .person-editor .rt-TextFieldRoot,
+  .scan-contract-count select {
+    min-height: 44px;
+  }
+  .action-bar > div {
+    display: grid;
+    grid-template-columns: 1fr;
+    width: 100%;
+    gap: 10px;
+  }
+  .action-bar > div > button {
+    width: 100%;
+    font-size: 14px;
+  }
+  .scan-contract-count {
+    flex-wrap: wrap;
+  }
+  .scan-contract-count > label {
+    flex: 1;
+    min-width: 120px;
+    font-size: 13px;
+  }
+  .scan-person-header select {
+    max-width: 100%;
+    min-height: 44px;
+  }
+}

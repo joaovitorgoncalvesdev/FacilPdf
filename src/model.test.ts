@@ -51,6 +51,22 @@ describe("Validação e extração", () => {
     expect(validate(emptyForm())).toContain("Doador 1: Nome completo");
     expect(validate(emptyForm())).toContain("Donatário: CPF");
   });
+  it("pede as áreas ausentes antes de comparar os valores", () => {
+    const form = emptyForm();
+    expect(validate(form)).toContain("Área total");
+    expect(
+      validate(form).some((issue) => issue.includes("não pode superar")),
+    ).toBe(false);
+    form.totalArea = "10";
+    form.donatedArea = "11";
+    expect(
+      validate(form).some((issue) => issue.includes("não pode superar")),
+    ).toBe(true);
+    form.donatedArea = "2";
+    expect(
+      validate(form).some((issue) => issue.includes("não pode superar")),
+    ).toBe(false);
+  });
   it("separa donatários em contratos no plural, inclusive sem nacionalidade", () => {
     const findings = extract(
       "DOADOR: JOÃO DE TESTE, CPF: 123.456.789-09.\nDONATÁRIAS: ANA DE TESTE, CPF: 529.982.247-25; MARIA DE TESTE, CPF: 111.444.777-35.",
