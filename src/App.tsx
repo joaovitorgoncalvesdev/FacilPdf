@@ -496,13 +496,11 @@ export default function App() {
           )}
           {view === "editor" && (
             <>
-              {mobilePane === "form" && (
-                <div className="start-tools">
-                  <Button variant="outline" onClick={() => setView("scanner")}>
-                    <Scan /> Preencher com documentos
-                  </Button>
-                </div>
-              )}
+              <div className="start-tools" hidden={mobilePane !== "form"}>
+                <Button variant="outline" onClick={() => setView("scanner")}>
+                  <Scan /> Preencher com documentos
+                </Button>
+              </div>
               <details
                 className="document-setup"
                 hidden={mobilePane !== "form"}
@@ -722,22 +720,35 @@ export default function App() {
                 <section className="preview-panel" aria-label="Prévia do PDF">
                   <div className="preview-header">
                     <div>
-                      <h2>Confira o contrato</h2>
-                      <span>
-                        {pdfUrl
-                          ? dirty
-                            ? "Dados alterados. Gere uma nova prévia."
-                            : "Revise todas as páginas antes de salvar."
-                          : "A prévia mostra o PDF que será salvo."}
-                      </span>
+                      <h2>Prévia</h2>
+                      {pdfUrl && (
+                        <span>
+                          {dirty
+                            ? "Dados alterados. Atualize a prévia."
+                            : "Confira todas as páginas antes de salvar."}
+                        </span>
+                      )}
                     </div>
                     <span className="a4">A4</span>
+                    {pdfUrl && dirty && (
+                      <Button
+                        variant="ghost"
+                        size="1"
+                        disabled={busy}
+                        onClick={() => void makePDF()}
+                      >
+                        Atualizar prévia
+                      </Button>
+                    )}
                   </div>
                   <div className="preview-stage">
                     {pdfUrl ? (
                       <PdfPreview blob={pdf!} />
                     ) : (
-                      <p className="preview-empty">Preparando documento…</p>
+                      <div className="preview-placeholder">
+                        <FileText size={38} weight="light" aria-hidden="true" />
+                        <p>Preencha os dados e clique em Conferir documento.</p>
+                      </div>
                     )}
                   </div>
                   <div className="preview-footer">
@@ -754,6 +765,23 @@ export default function App() {
                       </a>
                     )}
                   </div>
+                  {pdfUrl && (
+                    <div className="review-actions">
+                      <button
+                        className="text-button edit-preview-data"
+                        onClick={() => setMobilePane("form")}
+                      >
+                        Editar dados
+                      </button>
+                      <Button
+                        disabled={busy || !ready || dirty}
+                        onClick={savePDF}
+                      >
+                        <DownloadSimple />
+                        {busy ? "Salvando…" : "Salvar PDF"}
+                      </Button>
+                    </div>
+                  )}
                 </section>
               </div>
               {undoDraft && (
@@ -771,20 +799,6 @@ export default function App() {
                     }}
                   >
                     Desfazer novo documento
-                  </Button>
-                </div>
-              )}
-              {mobilePane === "preview" && (
-                <div className="review-actions">
-                  <button
-                    className="text-button"
-                    onClick={() => setMobilePane("form")}
-                  >
-                    Editar dados
-                  </button>
-                  <Button disabled={busy || !ready} onClick={savePDF}>
-                    <DownloadSimple />
-                    {busy ? "Salvando…" : "Salvar PDF"}
                   </Button>
                 </div>
               )}

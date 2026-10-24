@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-10-23T23:59:13.8873887Z",
+  "generatedAt": "2026-10-24T00:09:09.3170472Z",
   "title": "Design System: FácilPDF",
   "extensions": {
     "direction": {
@@ -79,6 +79,10 @@
       {
         "name": "workflow-mobile-max",
         "value": "760px"
+      },
+      {
+        "name": "side-preview-min",
+        "value": "1100px"
       }
     ],
     "colorMeta": {
@@ -1187,7 +1191,7 @@
       "Painéis tonais com bordas finas sobre fundo esverdeado, acompanhando a aparência escolhida.",
       "Tipografia compacta e hierarquia orientada à edição.",
       "Prévia do PDF como parte funcional do espaço de trabalho.",
-      "Um painel por etapa e uma ação principal para continuar, conferir e salvar."
+      "Formulário e prévia lado a lado a partir de 1100px; uma área por vez nas telas menores."
     ],
     "rules": [
       {
@@ -1203,6 +1207,7 @@
       "Apresentar histórico local como sincronização entre dispositivos."
     ],
     "northStar": "Operate — mesa de edição documental",
-    "overview": "Um espaço de trabalho com verde documental, superfícies claras ou escuras e papel branco. A hierarquia acompanha a tarefa: preencher, conferir o documento e salvar. Em todas as larguras, um único painel mostra a etapa atual: primeiro o formulário, depois a revisão do PDF. Scanner e histórico usam vistas próprias.\n\nEste documento atualiza a direção provisória com os valores implementados em `src/styles.css`, `src/form-v2.css`, `src/workflow.css`, `src/App.tsx`, `src/ContractForm.tsx`, `src/ScannerView.tsx`, `src/theme.css`, `src/Appearance.tsx`, `src/LocationFields.tsx` e no tema Radix compartilhado. A interface foi desenvolvida em código para teste local; não representa aprovação de uma composição visual pelo usuário. O modo escuro e a preferência persistente foram solicitados pelo usuário como extensão da identidade existente. Direção inicial: variância 3/10, movimento 2/10 e densidade 5/10."
+    "overview": "Um espaço de trabalho com verde documental, superfícies claras ou escuras e papel branco. A hierarquia acompanha a tarefa: preencher, conferir o documento e salvar. Em telas largas, formulário e prévia dividem o espaço de trabalho; em telas menores, cada etapa ocupa a área disponível. Scanner e histórico usam vistas próprias.\n\nEste documento atualiza a direção provisória com os valores implementados em `src/styles.css`, `src/form-v2.css`, `src/workflow.css`, `src/App.tsx`, `src/ContractForm.tsx`, `src/ScannerView.tsx`, `src/theme.css`, `src/Appearance.tsx`, `src/LocationFields.tsx` e no tema Radix compartilhado. A interface foi desenvolvida em código para teste local; não representa aprovação de uma composição visual pelo usuário. O modo escuro e a preferência persistente foram solicitados pelo usuário como extensão da identidade existente. Direção inicial: variância 3/10, movimento 2/10 e densidade 5/10.",
+    "previewLayout": "A partir de 1100px, colunas minmax(340px, 0.95fr) e minmax(390px, 1.05fr), intervalo de 24px e conteúdo até 1560px. Prévia sticky a 16px, altura máxima calc(100dvh - 32px), documento com rolagem interna e cabeçalho, rodapé e ações sem encolher. Abaixo de 1100px, uma área por vez até 720px. Ícone documental e instrução antes de gerar; atualização explícita após alterações, com salvamento bloqueado até atualizar."
   }
 }

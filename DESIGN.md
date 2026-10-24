@@ -181,7 +181,7 @@ components:
 
 **Creative North Star: "Operate — mesa de edição documental"**
 
-Um espaço de trabalho com verde documental, superfícies claras ou escuras e papel branco. A hierarquia acompanha a tarefa: preencher, conferir o documento e salvar. Em todas as larguras, um único painel mostra a etapa atual: primeiro o formulário, depois a revisão do PDF. Scanner e histórico usam vistas próprias.
+Um espaço de trabalho com verde documental, superfícies claras ou escuras e papel branco. A hierarquia acompanha a tarefa: preencher, conferir o documento e salvar. Em telas largas, formulário e prévia dividem o espaço de trabalho; em telas menores, cada etapa ocupa a área disponível. Scanner e histórico usam vistas próprias.
 
 Este documento atualiza a direção provisória com os valores implementados em `src/styles.css`, `src/form-v2.css`, `src/workflow.css`, `src/App.tsx`, `src/ContractForm.tsx`, `src/ScannerView.tsx`, `src/theme.css`, `src/Appearance.tsx`, `src/LocationFields.tsx` e no tema Radix compartilhado. A interface foi desenvolvida em código para teste local; não representa aprovação de uma composição visual pelo usuário. O modo escuro e a preferência persistente foram solicitados pelo usuário como extensão da identidade existente. Direção inicial: variância 3/10, movimento 2/10 e densidade 5/10.
 
@@ -223,9 +223,11 @@ A fonte do documento Word é Times New Roman e pertence ao modelo, não ao tema 
 
 ## Layout
 
-A navegação lateral fixa mede 234px, reduz para 195px até 1190px e 175px até 960px; até 640px vira navegação horizontal. O cabeçalho mede 54px, tem fundo transparente e não tem divisor. O conteúdo tem largura máxima de 1000px e padding superior de 10px, passando a 22px até 760px. As margens laterais são 38px, 24px até 1190px e 16px até 640px.
+A navegação lateral fixa mede 234px, reduz para 195px até 1190px e 175px até 960px; até 640px vira navegação horizontal. O cabeçalho mede 54px, tem fundo transparente e não tem divisor. O conteúdo tem largura máxima de 1000px, ampliada para 1560px a partir de 1100px, e padding superior de 10px, passando a 22px até 760px. As margens laterais são 38px, 24px até 1190px e 16px até 640px.
 
-Editor, configuração e ações inferiores têm largura máxima de 720px, centralizados. Um único painel fica visível em todas as larguras: preencher, depois conferir o PDF. A prévia fica no fluxo, sem posição sticky e sem alternador móvel. Não há papel de exemplo na etapa de preenchimento.
+A partir de 1100px, o editor tem duas colunas: formulário à esquerda e prévia à direita, com proporções de 0.95fr e 1.05fr, larguras mínimas de 340px e 390px e intervalo de 24px. A prévia fica presa a 16px do topo e limitada a calc(100dvh - 32px). Seu documento rola dentro do painel; cabeçalho, rodapé e ações conservam o próprio espaço. Configuração, ferramentas e ações inferiores acompanham a largura disponível.
+
+Abaixo de 1100px, editor, configuração e ações inferiores mantêm largura máxima de 720px, centralizados, com uma área por vez: preencher, depois conferir o PDF. A prévia fica no fluxo, sem posição sticky e sem alternador móvel. Antes da geração, o painel mostra somente um ícone documental e uma instrução breve, sem papel de exemplo.
 
 Campos de pessoa usam padding lateral de 28px e intervalo de 18px; até 760px usam uma coluna, padding lateral de 18px e intervalo de 16px. As opções de assinatura usam duas colunas no desktop e uma no celular. O rodapé usa padding de 22px 28px, reduzido para 20px 18px; sua ação principal mede no mínimo 46px.
 
@@ -243,7 +245,7 @@ Painéis usam 10px; navegação e mensagens, 7px; ícones documentais e validaç
 
 Botões Radix usam variantes solid, outline, soft e ghost. Solid aplica o verde principal e texto branco; o peso é 550. Ações de exclusão usam a variante vermelha do Radix. Estados desabilitados impedem a ação e usam cursor de indisponibilidade. O texto informa geração ou leitura em andamento.
 
-Campos têm rótulos persistentes e indicação de obrigatoriedade ou opcionalidade. No editor de pessoas a altura mínima é 44px. O select nomeado de pessoa ou etapa fica no details fechado “Trocar pessoa ou ir ao imóvel”; as opções incluem nome e função. O rodapé oferece Voltar, oculto na primeira etapa, e uma ação principal: Continuar valida a pessoa atual; Conferir documento gera o PDF após o imóvel. A revisão oferece Editar dados e Salvar PDF. Navegação selecionada combina fundo verde claro, texto verde e estado ativo. A etiqueta A4 é compacta e contornada.
+Campos têm rótulos persistentes e indicação de obrigatoriedade ou opcionalidade. No editor de pessoas a altura mínima é 44px. O select nomeado de pessoa ou etapa fica no details fechado “Trocar pessoa ou ir ao imóvel”; as opções incluem nome e função. O rodapé oferece Voltar, oculto na primeira etapa, e uma ação principal: Continuar valida a pessoa atual; Conferir documento gera o PDF após o imóvel. Salvar PDF fica no rodapé do próprio painel de prévia. Editar dados aparece abaixo de 1100px; em telas largas o formulário continua acessível à esquerda. Navegação selecionada combina fundo verde claro, texto verde e estado ativo. A etiqueta A4 é compacta e contornada.
 
 O scanner usa borda tracejada de 1.5px e área branca. Durante a leitura muda para `dropzone-busy`, apresenta progresso e desabilita a seleção. Os dados extraídos podem ser editados e selecionados antes de aplicar. O histórico mantém pesquisa, reabertura, download e exclusão com confirmação na própria linha.
 
@@ -281,7 +283,7 @@ A prévia usa PDF.js em canvas branco, inclusive no modo escuro. A navegação f
 
 O foco global usa contorno de 3px em `focus`, afastado 3px. Mudanças de fundo e texto duram 160ms com `ease-out`; mensagens entram em 180ms com deslocamento de 3px. Esses movimentos só são aplicados em `prefers-reduced-motion: no-preference`.
 
-A prévia é gerada por uma ação explícita. O rascunho dos campos é salvo após 500ms sem alterações; esse salvamento não gera o PDF. Alterações pendentes impedem salvar um PDF desatualizado. O estado do rascunho distingue alterações pendentes, salvamento e falha. Mensagens e estados vazios devem indicar a próxima ação disponível. Iniciar novo documento oferece Desfazer em uma faixa de estado durante a sessão. Ao continuar uma pessoa ou gerar com pendências, a interface mostra erros junto dos campos e leva o foco à primeira pendência; aria-invalid e aria-describedby associam o erro ao controle.
+A prévia é gerada por uma ação explícita. Quando os dados mudam, o cabeçalho indica a desatualização e oferece Atualizar prévia; Salvar PDF permanece desabilitado até a atualização. O rascunho dos campos é salvo após 500ms sem alterações; esse salvamento não gera o PDF. Alterações pendentes impedem salvar um PDF desatualizado. O estado do rascunho distingue alterações pendentes, salvamento e falha. Mensagens e estados vazios devem indicar a próxima ação disponível. Iniciar novo documento oferece Desfazer em uma faixa de estado durante a sessão. Ao continuar uma pessoa ou gerar com pendências, a interface mostra erros junto dos campos e leva o foco à primeira pendência; aria-invalid e aria-describedby associam o erro ao controle.
 
 ## Do's and Don'ts
 

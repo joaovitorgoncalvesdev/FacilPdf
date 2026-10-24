@@ -20,7 +20,7 @@ Não é necessário instalar Node.js, Word ou conversor para usar o site. Por es
 - Uma pessoa por vez, com Continuar; salto por nome/papel recolhido e atalhos de data/cidade.
 - Erros junto dos campos; gerar com pendências leva ao primeiro ajuste. Comparação de áreas só aparece depois de informar ambas.
 - Status real de salvamento do rascunho. **Desfazer novo documento** recupera a última versão anterior durante a sessão; não é uma lixeira permanente.
-- Em computador e celular, preenchimento e revisão aparecem separadamente: Continuar → Conferir documento → Salvar PDF. Word editável em Outras opções.
+- No computador (a partir de 1100px), preenchimento à esquerda e prévia à direita. No celular e em telas menores, uma área por vez. Fluxo: Continuar → Conferir documento → Salvar PDF. Word editável em Outras opções.
 - Histórico com busca, limpar busca, reabrir, duplicar, baixar, excluir e backup ZIP.
 - Claro, escuro ou conforme o dispositivo; o documento mantém papel branco.
 

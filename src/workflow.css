@@ -30,6 +30,36 @@
 .simple-app .preview-panel {
   position: static;
 }
+.preview-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  min-height: 460px;
+  padding: 32px;
+  text-align: center;
+  color: var(--ui-58675f);
+}
+.preview-placeholder strong {
+  font-size: 16px;
+  color: var(--ui-202c28);
+}
+.preview-placeholder p {
+  font-size: 13px;
+  max-width: 30ch;
+  margin: 0;
+  line-height: 1.65;
+}
+.simple-app .preview-panel .review-actions {
+  margin: 0;
+  padding: 16px 20px;
+  border-top: 1px solid var(--ui-dce3dd);
+}
+.simple-app .preview-header {
+  gap: 12px;
+  flex-wrap: wrap;
+}
 .simple-app .panel-header {
   padding: 24px 28px 18px;
   border-bottom: 0;
@@ -310,6 +340,65 @@
 .simple-app .scanner-workbench:has(.scan-person) .dropzone > svg,
 .simple-app .scanner-workbench:has(.scan-person) .dropzone > p {
   display: none;
+}
+@media (min-width: 1100px) {
+  .simple-app .page-content {
+    max-width: 1560px;
+  }
+  .simple-app .editor-layout {
+    display: grid;
+    grid-template-columns: minmax(340px, 0.95fr) minmax(390px, 1.05fr);
+    align-items: start;
+    gap: 24px;
+    max-width: none;
+  }
+  .simple-app .pane-form .preview-panel,
+  .simple-app .pane-preview .form-panel {
+    display: block;
+  }
+  .simple-app .pane-form .preview-panel,
+  .simple-app .pane-preview .preview-panel {
+    display: flex;
+    flex-direction: column;
+  }
+  .simple-app .preview-panel {
+    position: sticky;
+    top: 16px;
+    max-height: calc(100dvh - 32px);
+    overflow: hidden;
+  }
+  .simple-app .preview-stage {
+    padding: 20px;
+    min-height: 0;
+    overflow: auto;
+    flex: 1 1 auto;
+    align-items: flex-start;
+  }
+  .simple-app .preview-header,
+  .simple-app .preview-footer,
+  .simple-app .preview-panel .review-actions {
+    flex-shrink: 0;
+  }
+  .simple-app .preview-placeholder {
+    min-height: 480px;
+  }
+  .simple-app .start-tools,
+  .simple-app .document-setup {
+    display: block;
+    max-width: none;
+    margin-left: 0;
+    margin-right: 0;
+  }
+  .simple-app .quiet-footer,
+  .simple-app .undo-draft {
+    max-width: none;
+  }
+  .simple-app .edit-preview-data {
+    display: none;
+  }
+  .simple-app .preview-panel .review-actions {
+    justify-content: flex-end;
+  }
 }
 @media (max-width: 760px) {
   .simple-app .sidebar nav {
